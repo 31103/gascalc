@@ -1,0 +1,11 @@
+# Build artifacts
+dist/
+
+# Temporary build files
+dist/.temp/
+
+# Node.js dependencies (potentially used by Deno for npm packages)
+node_modules/
+
+# Deno lock file
+deno.lock
