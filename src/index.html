@@ -16,7 +16,7 @@
                 <div class="flex items-center gap-3">
                     <h1 class="text-2xl md:text-3xl font-bold text-gray-700">ガス使用量計算</h1>
                     <div class="relative group">
-                        <button onclick="toggleSettings()" class="text-xl text-gray-500 hover:text-blue-600 transition-colors duration-200">
+                        <button id="settingsBtn" class="text-xl text-gray-500 hover:text-blue-600 transition-colors duration-200">
                             ⚙️
                         </button>
                         <span class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-max max-w-xs px-3 py-1.5 bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
@@ -24,7 +24,7 @@
                         </span>
                     </div>
                 </div>
-                <button onclick="clearAll()" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-200 text-sm font-medium">
+                <button id="clearAllBtn" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-200 text-sm font-medium">
                     クリア
                 </button>
             </div>
@@ -34,7 +34,7 @@
                 <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-xl font-semibold text-gray-700">設定</h2>
-                        <button onclick="toggleSettings()" class="text-2xl text-gray-500 hover:text-gray-700">&times;</button>
+                        <button id="settingsCloseBtn" class="text-2xl text-gray-500 hover:text-gray-700">&times;</button>
                     </div>
                     <div class="space-y-4">
                         <div class="flex items-center justify-between">
@@ -48,7 +48,7 @@
                                 </span>
                             </label>
                             <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="fio2Mode" class="sr-only peer" onchange="toggleFio2Mode()">
+                                <input type="checkbox" id="fio2Mode" class="sr-only peer">
                                 <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                             </label>
                         </div>
@@ -63,7 +63,7 @@
                                 </span>
                             </label>
                              <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="noRoomAirMode" class="sr-only peer" onchange="toggleNoRoomAirMode()" disabled>
+                                <input type="checkbox" id="noRoomAirMode" class="sr-only peer" disabled>
                                 <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed"></div>
                             </label>
                         </div>
@@ -130,7 +130,7 @@
                         </label>
                         <input type="text" id="fio2Input" placeholder="例: 40" class="w-full sm:w-20 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                    <button onclick="addEntry()" class="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors duration-200 text-sm font-medium w-full sm:w-auto">
+                    <button id="addEntryBtn" class="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors duration-200 text-sm font-medium w-full sm:w-auto">
                         追加
                     </button>
                 </div>

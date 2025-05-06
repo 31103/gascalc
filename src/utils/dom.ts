@@ -11,16 +11,21 @@ function getElementById<T extends HTMLElement>(id: string): T {
   return element as T;
 }
 
-const dateTimeInput = () => getElementById<HTMLInputElement>('dateTime');
-const flowInput = () => getElementById<HTMLInputElement>('flow');
-const fio2Input = () => getElementById<HTMLInputElement>('fio2Input');
-const fio2InputGroup = () => getElementById<HTMLDivElement>('fio2InputGroup');
-const errorDiv = () => getElementById<HTMLDivElement>('error');
-const entriesList = () => getElementById<HTMLUListElement>('entries');
-const usageList = () => getElementById<HTMLUListElement>('usage');
-const settingsOverlay = () => getElementById<HTMLDivElement>('settingsOverlay');
-const fio2ModeCheckbox = () => getElementById<HTMLInputElement>('fio2Mode');
-const noRoomAirModeCheckbox = () => getElementById<HTMLInputElement>('noRoomAirMode');
+export const dateTimeInput = () => getElementById<HTMLInputElement>('dateTime');
+export const flowInput = () => getElementById<HTMLInputElement>('flow');
+export const fio2Input = () => getElementById<HTMLInputElement>('fio2Input');
+export const fio2InputGroup = () => getElementById<HTMLDivElement>('fio2InputGroup');
+export const errorDiv = () => getElementById<HTMLDivElement>('error');
+export const entriesList = () => getElementById<HTMLUListElement>('entries');
+export const usageList = () => getElementById<HTMLUListElement>('usage');
+export const settingsOverlay = () => getElementById<HTMLDivElement>('settingsOverlay');
+export const fio2ModeCheckbox = () => getElementById<HTMLInputElement>('fio2Mode');
+export const noRoomAirModeCheckbox = () => getElementById<HTMLInputElement>('noRoomAirMode');
+// ボタン要素の Getter を追加
+export const addEntryBtn = () => getElementById<HTMLButtonElement>('addEntryBtn');
+export const clearAllBtn = () => getElementById<HTMLButtonElement>('clearAllBtn');
+export const settingsBtn = () => getElementById<HTMLButtonElement>('settingsBtn');
+export const settingsCloseBtn = () => getElementById<HTMLButtonElement>('settingsCloseBtn');
 
 // --- UI Update Functions ---
 

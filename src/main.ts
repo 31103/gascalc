@@ -9,6 +9,16 @@ import {
   clearInputFields,
   populateInputFieldsForEdit,
   copyUsageToClipboard,
+  // Element Getters from dom.ts
+  dateTimeInput,
+  flowInput,
+  fio2Input,
+  fio2ModeCheckbox,
+  noRoomAirModeCheckbox,
+  addEntryBtn,
+  clearAllBtn,
+  settingsBtn,
+  settingsCloseBtn,
 } from "./utils/dom.ts";
 
 // --- Application State ---
@@ -19,17 +29,7 @@ let fio2Mode = false;
 let noRoomAirMode = false;
 
 // --- DOM Element References ---
-// dom.ts で取得するものはここでは不要
-
-const dateTimeInput = () => document.getElementById('dateTime') as HTMLInputElement;
-const flowInput = () => document.getElementById('flow') as HTMLInputElement;
-const fio2Input = () => document.getElementById('fio2Input') as HTMLInputElement;
-const addButton = () => document.querySelector('button[onclick="addEntry()"]') as HTMLButtonElement; // 仮。後で onclick は削除
-const clearButton = () => document.querySelector('.clear-btn') as HTMLButtonElement; // 仮。後で onclick は削除
-const settingsButton = () => document.querySelector('.tooltip[onclick="toggleSettings()"]') as HTMLDivElement; // 仮
-const settingsCloseButton = () => document.querySelector('.close-btn[onclick="toggleSettings()"]') as HTMLSpanElement; // 仮
-const fio2ModeCheckbox = () => document.getElementById('fio2Mode') as HTMLInputElement;
-const noRoomAirModeCheckbox = () => document.getElementById('noRoomAirMode') as HTMLInputElement;
+// Element getters are now imported from dom.ts
 
 
 // --- Core Functions ---
@@ -46,12 +46,14 @@ function parseDateTime(input: string): Date | null {
 
     // 入力文字列の長さに応じてパース方法を決定
     if (input.length <= 4) { // HHMM 形式 (日付省略)
-        if (!lastDate) { // 初回入力で日付省略はエラー
-             displayError("最初のエントリでは日付を省略できません。DDHHMM形式で入力してください。");
-             return null;
-        }
         input = input.padStart(4, '0');
-        day = lastDate.getDate();
+        if (!lastDate) { // 初回入力の場合、日付を1日に設定
+            day = 1;
+            // displayError("最初のエントリでは日付を省略できません。DDHHMM形式で入力してください。"); // 削除
+            // return null; // 削除
+        } else { // 2回目以降は前回の日付を使用
+            day = lastDate.getDate();
+        }
         hour = parseInt(input.slice(0, 2), 10);
         minute = parseInt(input.slice(2, 4), 10);
     } else { // DDHHMM 形式
@@ -61,8 +63,10 @@ function parseDateTime(input: string): Date | null {
         minute = parseInt(input.slice(4, 6), 10);
     }
 
-    // 簡単なバリデーション
+
+    // 簡単なバリデーション (元の形式に戻す)
     if (isNaN(day) || isNaN(hour) || isNaN(minute) || day < 1 || day > 31 || hour >= 24 || minute >= 60) {
+        displayError('無効な日付時刻形式です。DDHHMM または HHMM で入力してください。'); // エラーメッセージを汎用的に
         return null;
     }
 
@@ -70,8 +74,8 @@ function parseDateTime(input: string): Date | null {
     // 月をまたぐ場合などを考慮すると、より堅牢な日付処理が必要になる可能性がある
     const date = new Date(now.getFullYear(), now.getMonth(), day, hour, minute);
 
-    // パース成功したら lastDate を更新
-    lastDate = date;
+    // パース成功。lastDate の更新は addEntry で行う
+    // lastDate = date; // ここでは更新しない
     return date;
 }
 
@@ -189,33 +193,33 @@ function initialize(): void {
     // 初期UI表示
     updateUI(entries, fio2Mode, noRoomAirMode, handleEditEntry, handleDeleteEntry, handleCopyUsage);
 
-    // ボタンクリックイベント (onclick属性を削除し、こちらで設定)
-    addButton().onclick = addEntry;
-    clearButton().onclick = clearAll;
-    settingsButton().onclick = toggleSettings;
-    settingsCloseButton().onclick = toggleSettings;
+    // ボタンクリックイベントリスナー
+    addEntryBtn().addEventListener('click', addEntry);
+    clearAllBtn().addEventListener('click', clearAll);
+    settingsBtn().addEventListener('click', toggleSettings);
+    settingsCloseBtn().addEventListener('click', toggleSettings);
 
-    // 設定トグルイベント
-    fio2ModeCheckbox().onchange = () => {
+    // 設定トグルイベントリスナー
+    fio2ModeCheckbox().addEventListener('change', () => {
         fio2Mode = handleFio2ModeToggle(clearAll);
         // FiO2モード変更後、UIを再描画してFiO2表示を更新
         updateUI(entries, fio2Mode, noRoomAirMode, handleEditEntry, handleDeleteEntry, handleCopyUsage);
-    };
-    noRoomAirModeCheckbox().onchange = () => {
+    });
+    noRoomAirModeCheckbox().addEventListener('change', () => {
         noRoomAirMode = handleNoRoomAirModeToggle(clearAll);
          // 室内気モード変更後、UIを再描画して窒素表示を更新
         updateUI(entries, fio2Mode, noRoomAirMode, handleEditEntry, handleDeleteEntry, handleCopyUsage);
-    };
+    });
 
     // Enterキーでのフォーカス移動と追加
-    dateTimeInput().addEventListener('keypress', (e) => {
+    dateTimeInput().addEventListener('keypress', (e: KeyboardEvent) => {
         if (e.key === 'Enter') {
             e.preventDefault(); // デフォルトの送信動作を抑制
             flowInput().focus();
         }
     });
 
-    flowInput().addEventListener('keypress', (e) => {
+    flowInput().addEventListener('keypress', (e: KeyboardEvent) => {
         if (e.key === 'Enter') {
             e.preventDefault();
             if (fio2Mode) {
@@ -226,7 +230,7 @@ function initialize(): void {
         }
     });
 
-    fio2Input().addEventListener('keypress', (e) => {
+    fio2Input().addEventListener('keypress', (e: KeyboardEvent) => {
         if (e.key === 'Enter') {
             e.preventDefault();
             addEntry();

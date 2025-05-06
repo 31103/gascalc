@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "build:css": "deno run -A npm:@tailwindcss/cli -i ./src/styles/input.css -o ./dist/.temp/styles.css --minify",
+    "build:css": "deno run -A npm:@tailwindcss/cli -i ./src/styles/input.css -o ./dist/.temp/styles.css --minify -v",
     "build:html": "deno run -A ./build.ts", // build:js は build.ts に統合
     // Windows と Unix 系 OS の両方に対応するため、OS 固有のコマンドは避けるか、
     // Deno スクリプト内で OS を判定して実行する方が望ましいですが、

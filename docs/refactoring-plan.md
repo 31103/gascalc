@@ -193,6 +193,69 @@ graph LR
    - **UI/UXの観点** (デザイン、レスポンシブ、インタラクション)
      からも確認し、必要に応じてコードやスタイルを修正。
    - コミット (`fix: 動作確認とUI/UX調整`)。
+
+### フェーズ7における問題点と修正計画 (2025/05/06)
+
+フェーズ7の動作確認中に以下の問題が確認されました。
+
+- **デザイン崩れ:** TailwindCSSのスタイルが適用されていない。
+- **HHMM入力不可:** 日付時刻フィールドでHHMM形式の入力が正しく処理されない。
+- **クリアボタン無効:** クリアボタンをクリックしても動作しない。
+- **設定ボタン無効:** 設定ボタンをクリックしても設定モーダルが表示されない。
+- **コンソールエラー:**
+  `Uncaught TypeError: Cannot set properties of null (setting 'onclick')`
+  が発生。
+
+これらの問題を解決するため、以下の優先順位で修正を行います。
+
+```mermaid
+graph TD
+   subgraph 修正優先度 (改訂版)
+       P1[1. ボタン修正 (クリア/設定)] --> P2[2. CSS読み込み/適用問題調査] --> P3[3. 日付時刻修正 (HHMM)] --> P4[4. その他デザイン調整]
+   end
+
+   subgraph 修正内容
+       P1 --> FixButtons[main.ts: セレクタ修正<br>index.html: ID追加]
+       P2 --> InvestigateCSS[dist/gascalc.html確認<br>ブラウザ開発ツール調査<br>build.ts/build:css再確認]
+       P3 --> FixDateTime[main.ts: parseDateTime/lastDate修正]
+       P4 --> FixMinorDesign[dom.ts: updateUIクラス確認など]
+   end
+
+   FixButtons & InvestigateCSS & FixDateTime & FixMinorDesign --> SwitchToCode[Codeモードで実装]
+```
+
+**具体的な修正ステップ:**
+
+1. **ボタンイベントリスナー修正:**
+
+- `src/index.html`
+  のクリアボタン、設定ボタン、設定モーダル閉じるボタンにIDを付与。
+- `src/main.ts` の `initialize` 関数内で、IDセレクタ (`getElementById`)
+  を使用してボタン要素を取得するように修正。
+- HTML側の `onclick` 属性を削除。
+
+2. **CSS読み込み/適用問題調査:**
+
+- `dist/gascalc.html` を確認し、CSSがインライン展開されているか確認。
+- 展開されていない場合はビルドプロセス (`build.ts`, `deno task build:css`)
+  を再調査。
+- 展開されている場合はブラウザ開発者ツールで原因を特定。
+
+3. **日付時刻処理修正:**
+
+- `src/main.ts` の `parseDateTime` 関数と `lastDate` 更新ロジックを修正。
+
+4. **その他デザイン調整:**
+
+- 必要に応じて `src/utils/dom.ts` の `updateUI` 内のクラス指定などを調整。
+
+**修正状況 (2025/05/06):**
+
+- ボタンイベントリスナーの問題 (TypeError) は修正済み。
+- 日付時刻処理 (HHMM形式入力) の問題は修正済み。
+- **未解決:**
+  TailwindCSSのビルドプロセスがソースコード内のクラスを正しく検知できず、必要なCSSルールが生成されないため、デザインが適用されない。この問題は詳細な調査が必要なため、別タスクとして切り出す。
+
 8. **ドキュメント更新:**
    - `README.md`
      に新しい技術スタック、ディレクトリ構造、ビルド方法、実行方法などを記載。
