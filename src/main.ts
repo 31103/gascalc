@@ -1,5 +1,4 @@
 import type { Entry } from "./types/entry.ts";
-import { formatDateForInput } from "./utils/calculation.ts";
 import {
   updateUI,
   displayError,

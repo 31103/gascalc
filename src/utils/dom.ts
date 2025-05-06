@@ -1,5 +1,5 @@
 import type { Entry } from "../types/entry.ts";
-import { formatDate, calculateUsage, type DailyUsage, formatDateForInput } from "./calculation.ts";
+import { formatDate, calculateUsage, formatDateForInput } from "./calculation.ts";
 
 // --- DOM Element Getters ---
 
