@@ -1,0 +1,146 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans max-w-3xl mx-auto p-5 bg-blue-50 text-gray-700;
+  }
+
+  h1 {
+    @apply text-2xl text-gray-800 m-0;
+  }
+
+  h2 {
+    @apply text-xl my-4 text-gray-700;
+  }
+}
+
+@layer components {
+  .container {
+    @apply bg-white p-8 rounded-xl shadow-md;
+  }
+
+  .header {
+    @apply flex justify-between items-center mb-5;
+  }
+
+  .title-container {
+    @apply flex items-center gap-3;
+  }
+
+  .clear-btn {
+    @apply px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors;
+  }
+
+  .settings-overlay {
+    @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50;
+  }
+
+  .settings-modal {
+    @apply bg-white rounded-lg p-6 w-full max-w-md shadow-lg;
+  }
+
+  .settings-header {
+    @apply flex justify-between items-center mb-4;
+  }
+
+  .settings-title {
+    @apply text-xl m-0;
+  }
+
+  .close-btn {
+    @apply text-2xl font-bold cursor-pointer;
+  }
+
+  .setting-item {
+    @apply mb-4 flex items-center justify-between;
+  }
+
+  .setting-label {
+    @apply flex items-center gap-2;
+  }
+
+  .error {
+    @apply text-red-500 my-2 min-h-[1.5rem];
+  }
+
+  .input-container {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-4 mt-4;
+  }
+
+  .input-group {
+    @apply flex flex-col gap-2;
+  }
+
+  input[type="text"] {
+    @apply border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500;
+  }
+
+  button {
+    @apply px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors;
+  }
+
+  ul {
+    @apply list-none p-0;
+  }
+
+  li {
+    @apply flex justify-between items-center p-2 border-b border-gray-100;
+  }
+
+  .action-buttons {
+    @apply flex gap-2;
+  }
+
+  .action-buttons button {
+    @apply px-2 py-1 text-sm;
+  }
+}
+
+/* Toggle switch styles */
+.toggle-switch {
+  @apply relative inline-block w-12 h-6;
+}
+
+.toggle-switch input {
+  @apply opacity-0 w-0 h-0;
+}
+
+.slider {
+  @apply absolute cursor-pointer inset-0 bg-gray-300 rounded-full transition-all duration-300;
+  @apply before:absolute before:h-4 before:w-4 before:left-1 before:bottom-1 before:bg-white before:rounded-full before:transition-all before:duration-300;
+}
+
+input:checked + .slider {
+  @apply bg-blue-500;
+}
+
+input:checked + .slider:before {
+  @apply transform translate-x-6;
+}
+
+input:disabled + .slider {
+  @apply bg-gray-200 cursor-not-allowed;
+}
+
+/* Tooltip styles */
+.tooltip {
+  @apply relative inline-flex items-center cursor-pointer;
+}
+
+.info-icon {
+  @apply inline-block w-4 h-4 text-center text-xs font-bold rounded-full border border-gray-400 text-gray-500;
+}
+
+.settings-icon {
+  @apply text-xl;
+}
+
+.tooltiptext {
+  @apply invisible absolute w-60 bg-gray-800 text-white text-xs rounded-md p-2 z-10 left-1/2 top-full mt-1 -translate-x-1/2;
+}
+
+.tooltip:hover .tooltiptext {
+  @apply visible;
+}

@@ -1,0 +1,19 @@
+{
+  "tasks": {
+    "build": "deno run --allow-read --allow-write scripts/build.ts",
+    "dev": "deno run --allow-read --allow-write --watch scripts/build.ts",
+    "test": "deno test --allow-read --allow-write"
+  },
+  "lint": {
+    "include": ["src/"]
+  },
+  "fmt": {
+    "include": ["src/"]
+  },
+  "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "dom.asynciterable", "deno.ns"]
+  },
+  "imports": {
+    "tailwindcss": "npm:tailwindcss@3.3.3"
+  }
+}
