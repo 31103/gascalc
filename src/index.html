@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ガス使用量計算ツール</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title-container">
+                <h1>ガス使用量計算ツール</h1>
+                <div class="tooltip" id="settingsToggle">
+                    <span class="settings-icon">⚙️</span>
+                    <span class="tooltiptext">設定画面を開きます</span>
+                </div>
+            </div>
+            <button class="clear-btn" id="clearButton">クリア</button>
+        </div>
+
+        <div id="settingsOverlay" class="settings-overlay">
+            <div class="settings-modal">
+                <div class="settings-header">
+                    <h2 class="settings-title">設定</h2>
+                    <span class="close-btn" id="closeSettings">&times;</span>
+                </div>
+                <div class="setting-item">
+                    <label class="setting-label" for="fio2Mode">
+                        FiO2指定モード
+                        <span class="tooltip">
+                            <span class="info-icon">?</span>
+                            <span class="tooltiptext">
+                                FiO2を指定してガスの使用量を計算できます。<br>
+                                人工呼吸器などで使用します。
+                            </span>
+                        </span>
+                    </label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="fio2Mode">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <label class="setting-label" for="noRoomAirMode">
+                        室内気不使用モード
+                        <span class="tooltip">
+                            <span class="info-icon">?</span>
+                            <span class="tooltiptext">
+                                室内気(RoomAir)を使用せず、医療ガスのみを用いる場合の設定です。<br>
+                                一部の人工呼吸器で使用します。<br>
+                                FiO2指定モードが有効な場合にのみ設定できます。
+                            </span>
+                        </span>
+                    </label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="noRoomAirMode" disabled="true">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div id="error" class="error"></div>
+        <h2>入力内容</h2>
+        <ul id="entries"></ul>
+        <h2>ガス使用量</h2>
+        <ul id="usage"></ul>
+        <div class="footer">
+            <div class="input-container">
+                <div class="input-group">
+                    <label for="dateTime">日付時刻
+                        <span class="tooltip">
+                            <span class="info-icon">?</span> <span class="tooltiptext">
+                                2日9時7分であれば20907と入力<br>
+                                日付を省略することも可能<br>
+                                （その場合、直近で指定した日付を引き継ぐ）<br>
+                                例：9時7分の場合は0907と入力
+                            </span>
+                        </span>
+                    </label>
+                    <input type="text" id="dateTime" placeholder="DDHHMM">
+                </div>
+                <div class="input-group">
+                    <label for="flow">流量(L/min)
+                        <span class="tooltip">
+                            <span class="info-icon">?</span> <span class="tooltiptext">
+                                酸素1.5L/minであれば、1.5と入力<br>
+                                例：3
+                            </span>
+                        </span>
+                    </label>
+                    <input type="text" id="flow" placeholder="例:3">
+                </div>
+                <div class="input-group" id="fio2InputGroup">
+                    <label for="fio2Input">FiO2(%)
+                        <span class="tooltip">
+                            <span class="info-icon">?</span> <span class="tooltiptext">
+                                酸素濃度を指定する<br>
+                                例：40
+                            </span>
+                        </span>
+                    </label>
+                    <input type="text" id="fio2Input" placeholder="例:40">
+                </div>
+                <button id="addButton">追加</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
