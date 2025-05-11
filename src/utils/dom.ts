@@ -17,6 +17,9 @@ const flowInputElement = getElementById<HTMLInputElement>('flow');
 const fio2InputElement = getElementById<HTMLInputElement>('fio2Input');
 const fio2InputGroupElement = getElementById<HTMLDivElement>('fio2InputGroup');
 const errorDivElement = getElementById<HTMLDivElement>('error');
+const snackbarElement = getElementById<HTMLDivElement>('snackbar');
+const snackbarTextElement = getElementById<HTMLSpanElement>('snackbarText');
+const snackbarActionElement = getElementById<HTMLButtonElement>('snackbarAction');
 const entriesListElement = getElementById<HTMLUListElement>('entries');
 const usageListElement = getElementById<HTMLUListElement>('usage');
 const settingsOverlayElement = getElementById<HTMLDivElement>('settingsOverlay');
@@ -26,6 +29,7 @@ const addEntryBtnElement = getElementById<HTMLButtonElement>('addEntryBtn');
 const clearAllBtnElement = getElementById<HTMLButtonElement>('clearAllBtn');
 const settingsBtnElement = getElementById<HTMLButtonElement>('settingsBtn');
 const settingsCloseBtnElement = getElementById<HTMLButtonElement>('settingsCloseBtn');
+const settingsCloseBtn2Element = getElementById<HTMLButtonElement>('settingsCloseBtn2');
 
 // --- Exported DOM Element Accessors ---
 export const dateTimeInput = () => dateTimeInputElement;
@@ -33,6 +37,9 @@ export const flowInput = () => flowInputElement;
 export const fio2Input = () => fio2InputElement;
 export const fio2InputGroup = () => fio2InputGroupElement;
 export const errorDiv = () => errorDivElement;
+export const snackbar = () => snackbarElement;
+export const snackbarText = () => snackbarTextElement;
+export const snackbarAction = () => snackbarActionElement;
 export const entriesList = () => entriesListElement;
 export const usageList = () => usageListElement;
 export const settingsOverlay = () => settingsOverlayElement;
@@ -42,7 +49,7 @@ export const addEntryBtn = () => addEntryBtnElement;
 export const clearAllBtn = () => clearAllBtnElement;
 export const settingsBtn = () => settingsBtnElement;
 export const settingsCloseBtn = () => settingsCloseBtnElement;
-
+export const settingsCloseBtn2 = () => settingsCloseBtn2Element;
 
 // --- UI Update Functions ---
 
@@ -66,16 +73,18 @@ export function updateUI(
     const entriesUl = entriesList(); // Accessor returns cached element
     entriesUl.innerHTML = ''; // 一旦クリア
     if (entriesData.length === 0) {
-        entriesUl.innerHTML = '<li class="text-center text-gray-500 text-sm py-4">まだ入力がありません</li>';
+        entriesUl.innerHTML = '<li class="text-center text-[var(--md-on-surface-variant)] py-4 md-body-medium">まだ入力がありません</li>';
     } else {
         entriesData.forEach((entry, index) => {
             const li = document.createElement('li');
-            li.className = 'flex justify-between items-center p-2 bg-white rounded border border-gray-200 text-sm';
+            li.className = 'md-list-item md-card p-3 mb-2';
             li.innerHTML = `
-                <span>${formatDate(entry.dateTime)} ${entry.flow}L/min${fio2Mode ? ` FiO2:${entry.fio2}%` : ''}</span>
-                <div class="flex gap-1">
-                    <button class="btn btn-warning btn-sm" data-index="${index}" data-action="edit">修正</button>
-                    <button class="btn btn-danger btn-sm" data-index="${index}" data-action="delete">削除</button>
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-2">
+                    <span class="md-body-large">${formatDate(entry.dateTime)} ${entry.flow}L/min${fio2Mode ? ` FiO2:${entry.fio2}%` : ''}</span>
+                    <div class="flex gap-2">
+                        <button class="btn btn-text btn-sm" data-index="${index}" data-action="edit">修正</button>
+                        <button class="btn btn-text btn-sm text-[var(--md-error)]" data-index="${index}" data-action="delete">削除</button>
+                    </div>
                 </div>
             `;
             entriesUl.appendChild(li);
@@ -103,9 +112,9 @@ export function updateUI(
     const sortedDates = Object.keys(usageData).map(Number).sort((a, b) => a - b);
 
     if (sortedDates.length === 0 && entriesData.length > 0) {
-         usageUl.innerHTML = '<li class="text-center text-gray-500 text-sm py-4">計算中です...</li>';
+         usageUl.innerHTML = '<li class="text-center text-[var(--md-on-surface-variant)] py-4 md-body-medium">計算中です...</li>';
     } else if (sortedDates.length === 0) {
-         usageUl.innerHTML = '<li class="text-center text-gray-500 text-sm py-4">入力後に計算結果が表示されます</li>';
+         usageUl.innerHTML = '<li class="text-center text-[var(--md-on-surface-variant)] py-4 md-body-medium">入力後に計算結果が表示されます</li>';
     } else {
         sortedDates.forEach(date => {
             const amounts = usageData[date];
@@ -113,14 +122,14 @@ export function updateUI(
             const nitrogenUsageStr = amounts.nitrogen % 1 === 0 ? String(amounts.nitrogen) : amounts.nitrogen.toFixed(1);
 
             const li = document.createElement('li');
-            li.className = 'flex justify-between items-center p-2 bg-white rounded border border-gray-200 text-sm';
+            li.className = 'md-list-item md-card p-3 mb-2';
             let usageText = `${date}日: 酸素 ${oxygenUsageStr}L`;
             if (noRoomAirMode && amounts.nitrogen > 0) {
                 usageText += ` / 窒素 ${nitrogenUsageStr}L`;
             }
             li.innerHTML = `
-                <span>${usageText}</span>
-                <div class="flex gap-1">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-2">
+                    <span class="md-body-large">${usageText}</span>
                     <button class="btn btn-primary btn-sm" data-oxygen="${oxygenUsageStr}" data-nitrogen="${nitrogenUsageStr}" data-action="copy">コピー</button>
                 </div>
             `;
@@ -138,20 +147,35 @@ export function updateUI(
 }
 
 /**
- * エラーメッセージを表示またはクリアする
+ * エラーメッセージをスナックバーで表示する
  * @param message 表示するメッセージ、または空文字列でクリア
  */
 export function displayError(message: string): void {
-  errorDiv().textContent = message; // Accessor returns cached element
+  if (!message) {
+    snackbar().classList.add('hidden');
+    return;
+  }
+  
+  snackbarText().textContent = message;
+  snackbar().classList.remove('hidden');
+  
+  // 3秒後に自動的に閉じる
+  setTimeout(() => {
+    snackbar().classList.add('hidden');
+  }, 3000);
+  
+  // 閉じるボタンのイベントリスナー
+  snackbarAction().onclick = () => {
+    snackbar().classList.add('hidden');
+  };
 }
 
 /**
- * 設定モーダルの表示/非表示を切り替える
+ * 設定ダイアログの表示/非表示を切り替える
  */
 export function toggleSettings(): void {
   const overlay = settingsOverlay(); // Accessor returns cached element
   overlay.classList.toggle('hidden');
-  overlay.classList.toggle('flex');
 }
 
 /**
@@ -160,7 +184,7 @@ export function toggleSettings(): void {
  */
 export function handleFio2ModeToggle(clearAllCallback: () => void): boolean {
   const isChecked = fio2ModeCheckbox().checked; // Accessor returns cached element
-  fio2InputGroup().style.display = isChecked ? 'block' : 'none'; // Accessor returns cached element
+  fio2InputGroup().classList.toggle('hidden', !isChecked); // Accessor returns cached element
   noRoomAirModeCheckbox().disabled = !isChecked; // Accessor returns cached element
 
   if (!isChecked) {
@@ -218,10 +242,11 @@ export function copyUsageToClipboard(oxygenUsage: string, nitrogenUsage: string,
     }
     navigator.clipboard.writeText(text)
         .then(() => {
-            // コピー成功時のフィードバックは任意
+            // コピー成功時のフィードバック
+            displayError("クリップボードにコピーしました");
         })
         .catch(err => {
             console.error('コピーに失敗しました: ', err);
-            displayError("クリップボードへのコピーに失敗しました。");
+            displayError("クリップボードへのコピーに失敗しました");
         });
 }

@@ -1,22 +1,375 @@
 @import "tailwindcss";
 
+/* Material Design 3 デザインシステム */
+:root {
+  /* カラーシステム - 医療向け青系パレット */
+  --md-primary: #006495;
+  --md-on-primary: #ffffff;
+  --md-primary-container: #cde5ff;
+  --md-on-primary-container: #001d32;
+  
+  --md-secondary: #50606e;
+  --md-on-secondary: #ffffff;
+  --md-secondary-container: #d3e5f5;
+  --md-on-secondary-container: #0c1d29;
+  
+  --md-tertiary: #00639b;
+  --md-on-tertiary: #ffffff;
+  --md-tertiary-container: #d0e4ff;
+  --md-on-tertiary-container: #001d34;
+  
+  --md-error: #ba1a1a;
+  --md-on-error: #ffffff;
+  --md-error-container: #ffdad6;
+  --md-on-error-container: #410002;
+  
+  --md-background: #fafbff;
+  --md-on-background: #1a1c1e;
+  --md-surface: #fafbff;
+  --md-on-surface: #1a1c1e;
+  
+  --md-surface-variant: #dfe2eb;
+  --md-on-surface-variant: #43474e;
+  --md-outline: #73777f;
+  --md-outline-variant: #c3c7cf;
+  
+  /* エレベーション（影） */
+  --md-elevation-level1: 0 1px 2px rgba(0,0,0,0.3);
+  --md-elevation-level2: 0 1px 2px rgba(0,0,0,0.3), 0 2px 6px rgba(0,0,0,0.15);
+  --md-elevation-level3: 0 1px 3px rgba(0,0,0,0.3), 0 4px 8px rgba(0,0,0,0.15);
+  --md-elevation-level4: 0 2px 3px rgba(0,0,0,0.3), 0 6px 10px rgba(0,0,0,0.15);
+  --md-elevation-level5: 0 4px 4px rgba(0,0,0,0.3), 0 8px 12px rgba(0,0,0,0.15);
+  
+  /* 形状（角丸） */
+  --md-shape-corner-small: 4px;
+  --md-shape-corner-medium: 8px;
+  --md-shape-corner-large: 16px;
+  --md-shape-corner-full: 9999px;
+  
+  /* アニメーション */
+  --md-motion-duration-short: 100ms;
+  --md-motion-duration-medium: 200ms;
+  --md-motion-duration-long: 300ms;
+  --md-motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  --md-motion-easing-emphasized: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* タイポグラフィ */
+@layer base {
+  html {
+    font-family: 'Roboto', 'Noto Sans JP', sans-serif;
+  }
+  
+  h1, .md-headline-large {
+    @apply text-3xl font-normal leading-tight;
+  }
+  
+  h2, .md-headline-medium {
+    @apply text-2xl font-normal leading-tight;
+  }
+  
+  h3, .md-headline-small {
+    @apply text-xl font-normal leading-tight;
+  }
+  
+  h4, .md-title-large {
+    @apply text-lg font-medium leading-tight;
+  }
+  
+  .md-title-medium {
+    @apply text-base font-medium leading-tight;
+  }
+  
+  .md-title-small {
+    @apply text-sm font-medium leading-tight;
+  }
+  
+  .md-body-large {
+    @apply text-base font-normal leading-normal;
+  }
+  
+  .md-body-medium {
+    @apply text-sm font-normal leading-normal;
+  }
+  
+  .md-body-small {
+    @apply text-xs font-normal leading-normal;
+  }
+  
+  .md-label-large {
+    @apply text-sm font-medium leading-tight;
+  }
+  
+  .md-label-medium {
+    @apply text-xs font-medium leading-tight;
+  }
+  
+  .md-label-small {
+    @apply text-xs font-medium leading-none;
+  }
+}
+
+/* Material Design 3 コンポーネント */
 @layer components {
+  /* ボタン */
   .btn {
-    @apply px-4 py-2 rounded font-medium transition-colors duration-200;
+    @apply inline-flex items-center justify-center px-6 py-2.5 rounded-full font-medium transition-all duration-200 select-none;
+    border-radius: var(--md-shape-corner-full);
   }
+  
   .btn-primary {
-    @apply bg-blue-600 text-white hover:bg-blue-700;
+    @apply text-white;
+    background-color: var(--md-primary);
+    color: var(--md-on-primary);
   }
+  
+  .btn-primary:hover {
+    @apply shadow-md;
+    background-color: color-mix(in srgb, var(--md-primary) 90%, #000);
+  }
+  
+  .btn-primary:active {
+    @apply shadow-sm;
+    background-color: color-mix(in srgb, var(--md-primary) 80%, #000);
+  }
+  
+  .btn-outlined {
+    @apply bg-transparent;
+    color: var(--md-primary);
+    border: 1px solid var(--md-outline);
+  }
+  
+  .btn-outlined:hover {
+    background-color: color-mix(in srgb, var(--md-primary) 8%, transparent);
+  }
+  
+  .btn-outlined:active {
+    background-color: color-mix(in srgb, var(--md-primary) 12%, transparent);
+  }
+  
+  .btn-text {
+    @apply bg-transparent;
+    color: var(--md-primary);
+  }
+  
+  .btn-text:hover {
+    background-color: color-mix(in srgb, var(--md-primary) 8%, transparent);
+  }
+  
+  .btn-text:active {
+    background-color: color-mix(in srgb, var(--md-primary) 12%, transparent);
+  }
+  
   .btn-danger {
-    @apply bg-red-500 text-white hover:bg-red-600;
+    background-color: var(--md-error);
+    color: var(--md-on-error);
   }
+  
+  .btn-danger:hover {
+    background-color: color-mix(in srgb, var(--md-error) 90%, #000);
+  }
+  
   .btn-warning {
-    @apply bg-yellow-400 text-white hover:bg-yellow-500;
+    @apply bg-amber-400 text-black hover:bg-amber-500;
   }
+  
   .btn-sm {
-    @apply px-2 py-1 text-xs;
+    @apply px-4 py-1.5 text-xs;
   }
+  
+  .btn:disabled {
+    @apply opacity-40 cursor-not-allowed;
+  }
+  
+  /* アイコンボタン */
+  .btn-icon {
+    @apply inline-flex items-center justify-center w-10 h-10 rounded-full;
+    color: var(--md-on-surface-variant);
+  }
+  
+  .btn-icon:hover {
+    background-color: color-mix(in srgb, var(--md-on-surface-variant) 8%, transparent);
+  }
+  
+  .btn-icon:active {
+    background-color: color-mix(in srgb, var(--md-on-surface-variant) 12%, transparent);
+  }
+  
+  /* 入力フィールド */
+  .input-field-container {
+    @apply relative mb-4;
+  }
+  
   .input-field {
-    @apply px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500;
+    @apply w-full px-3 py-2.5 text-base bg-transparent transition-all duration-200;
+    border: 1px solid var(--md-outline);
+    border-radius: var(--md-shape-corner-small);
+    color: var(--md-on-surface);
+  }
+  
+  .input-field:focus {
+    @apply outline-none;
+    border-color: var(--md-primary);
+    border-width: 2px;
+    padding-top: 16px;
+    padding-bottom: 8px;
+  }
+  
+  .input-field-label {
+    @apply absolute left-3 top-2.5 text-sm transition-all duration-200 pointer-events-none;
+    color: var(--md-on-surface-variant);
+  }
+  
+  .input-field:focus ~ .input-field-label,
+  .input-field:not(:placeholder-shown) ~ .input-field-label {
+    @apply text-xs transform -translate-y-3;
+    color: var(--md-primary);
+  }
+  
+  .input-field-helper {
+    @apply mt-1 text-xs;
+    color: var(--md-on-surface-variant);
+  }
+  
+  .input-field-error {
+    @apply mt-1 text-xs;
+    color: var(--md-error);
+  }
+  
+  /* カード */
+  .md-card {
+    @apply p-4 mb-3 bg-white rounded-lg;
+    border-radius: var(--md-shape-corner-medium);
+    background-color: var(--md-surface);
+    color: var(--md-on-surface);
+    box-shadow: var(--md-elevation-level1);
+    transition: box-shadow var(--md-motion-duration-medium) var(--md-motion-easing-standard);
+  }
+  
+  .md-card:hover {
+    box-shadow: var(--md-elevation-level2);
+  }
+  
+  .md-card-elevated {
+    box-shadow: var(--md-elevation-level2);
+  }
+  
+  .md-card-elevated:hover {
+    box-shadow: var(--md-elevation-level3);
+  }
+  
+  /* ダイアログ */
+  .md-dialog-container {
+    @apply fixed inset-0 z-50 flex items-center justify-center bg-black/50;
+  }
+  
+  .md-dialog {
+    @apply w-full max-w-md mx-4 p-6 rounded-2xl bg-white;
+    background-color: var(--md-surface);
+    color: var(--md-on-surface);
+    border-radius: var(--md-shape-corner-large);
+    box-shadow: var(--md-elevation-level3);
+  }
+  
+  .md-dialog-title {
+    @apply text-xl font-medium mb-4;
+  }
+  
+  .md-dialog-content {
+    @apply mb-6;
+  }
+  
+  .md-dialog-actions {
+    @apply flex justify-end gap-2;
+  }
+  
+  /* スイッチ */
+  .md-switch {
+    @apply relative inline-flex items-center cursor-pointer;
+  }
+  
+  .md-switch-input {
+    @apply sr-only;
+  }
+  
+  .md-switch-track {
+    @apply w-12 h-6 bg-gray-200 rounded-full transition-colors duration-200;
+  }
+  
+  .md-switch-input:checked ~ .md-switch-track {
+    background-color: color-mix(in srgb, var(--md-primary) 30%, white);
+  }
+  
+  .md-switch-thumb {
+    @apply absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200;
+    box-shadow: var(--md-elevation-level1);
+  }
+  
+  .md-switch-input:checked ~ .md-switch-thumb {
+    @apply transform translate-x-6;
+    background-color: var(--md-primary);
+  }
+  
+  .md-switch-input:focus ~ .md-switch-track {
+    @apply ring-2;
+    ring-color: color-mix(in srgb, var(--md-primary) 30%, transparent);
+  }
+  
+  .md-switch-input:disabled ~ .md-switch-track,
+  .md-switch-input:disabled ~ .md-switch-thumb {
+    @apply opacity-40 cursor-not-allowed;
+  }
+  
+  /* リスト */
+  .md-list {
+    @apply divide-y divide-gray-100;
+  }
+  
+  .md-list-item {
+    @apply flex justify-between items-center p-4 hover:bg-gray-50;
+  }
+  
+  /* スナックバー */
+  .md-snackbar {
+    @apply fixed bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-3 rounded-md text-white;
+    background-color: #323232;
+    min-width: 280px;
+    max-width: 90%;
+    box-shadow: var(--md-elevation-level3);
+    z-index: 1000;
+  }
+  
+  .md-snackbar-action {
+    @apply ml-4 text-sm font-medium uppercase;
+    color: var(--md-primary-container);
+  }
+  
+  /* トップアプリバー */
+  .md-top-app-bar {
+    @apply sticky top-0 z-10 w-full h-16 px-4 flex items-center;
+    background-color: var(--md-surface);
+    color: var(--md-on-surface);
+    box-shadow: var(--md-elevation-level1);
+  }
+  
+  .md-top-app-bar-row {
+    @apply w-full flex items-center justify-between;
+  }
+  
+  .md-top-app-bar-title {
+    @apply text-xl font-medium;
+  }
+  
+  /* ツールチップ */
+  .md-tooltip {
+    @apply absolute z-20 px-3 py-1.5 text-xs text-white rounded opacity-0 transition-opacity duration-200 pointer-events-none whitespace-nowrap;
+    background-color: #616161;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-4px);
+  }
+  
+  .md-tooltip-trigger:hover .md-tooltip {
+    @apply opacity-100;
   }
 }

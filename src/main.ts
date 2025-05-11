@@ -17,7 +17,9 @@ import {
   clearAllBtn,
   settingsBtn,
   settingsCloseBtn,
-  fio2InputGroup, // fio2InputGroup をインポートに追加
+  settingsCloseBtn2,
+  snackbarAction,
+  fio2InputGroup,
 } from "./utils/dom.ts";
 
 // --- Application State ---
@@ -190,6 +192,8 @@ function initialize(): void {
     clearAllBtn().addEventListener('click', clearAll);
     settingsBtn().addEventListener('click', toggleSettings);
     settingsCloseBtn().addEventListener('click', toggleSettings);
+    settingsCloseBtn2().addEventListener('click', toggleSettings);
+    snackbarAction().addEventListener('click', () => displayError(''));
 
     fio2ModeCheckbox().addEventListener('change', () => {
         fio2Mode = handleFio2ModeToggle(clearAll);
@@ -225,11 +229,8 @@ function initialize(): void {
         }
     });
 
-    // 初期状態で FiO2 入力欄の表示を制御 (dom.ts側でキャッシュされた要素を使うため、ここでは直接DOM操作しない方が良いが、
-    // fio2InputGroup() がdom.tsからエクスポートされているので、それを使うのが一貫性がある。
-    // ただし、この初期表示ロジックは handleFio2ModeToggle の一部としても良いかもしれない。)
-    // dom.tsからエクスポートされているアクセサを使用する。
-    fio2InputGroup().style.display = fio2Mode ? 'block' : 'none';
+    // 初期状態で FiO2 入力欄の表示を制御
+    fio2InputGroup().classList.toggle('hidden', !fio2Mode);
     noRoomAirModeCheckbox().disabled = !fio2Mode;
 }
 
