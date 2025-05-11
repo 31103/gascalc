@@ -1,10 +1,1 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* 必要に応じてカスタムベーススタイルやコンポーネントをここに追加 */
-/* 例:
-body {
-  @apply bg-gray-100 text-gray-800;
-}
-*/
+@import "tailwindcss";
