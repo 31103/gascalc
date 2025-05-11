@@ -2,16 +2,18 @@
 
 ## アーキテクチャ
 
-- **シングルページアプリケーション (SPA):** `gascalc.html` という単一の HTML
-  ファイルで構成されています。
+- **シングルページアプリケーション (SPA):** `dist/gascalc.html` という単一の
+  HTML ファイルで構成されています（ビルド後）。ソースは `src/`
+  ディレクトリ以下に分割されています。
 - **クライアントサイドレンダリング:** すべてのロジックと UI 更新はブラウザ側の
-  JavaScript で実行されます。サーバーサイドの処理はありません。
-- **バニラ JavaScript:** フレームワークやライブラリを使用せず、標準の Web API
-  (HTML, CSS, JavaScript) のみで実装されています。
+  TypeScript (JavaScriptにコンパイル)
+  で実行されます。サーバーサイドの処理はありません。
+- **技術スタック:** TypeScript を Deno ランタイムで利用。スタイリングには
+  TailwindCSS を使用。
 
 ## データ管理
 
-- **インメモリ:** 入力されたデータ（日付時刻、流量、FiO2）は JavaScript の
+- **インメモリ:** 入力されたデータ（日付時刻、流量、FiO2）は TypeScript の
   `entries` 配列にオブジェクトとして格納されます。
 - **非永続的:**
   データはブラウザのメモリ上にのみ存在し、ページのリロードやクローズで失われます。ローカルストレージ等による永続化は行われていません。
@@ -20,30 +22,42 @@
 
 ## UI パターン
 
-- **DOM 直接操作:** `updateUI()` 関数が `entries` 配列の内容に基づいて HTML
-  要素（リスト項目など）を動的に生成・更新します。
+- **DOM 直接操作:** `src/utils/dom.ts` の `updateUI()` 関数が `entries`
+  配列の内容に基づいて HTML
+  要素（リスト項目など）を動的に生成・更新します。DOM要素は効率化のため初回読み込み時にキャッシュされます。
 - **イベント駆動:**
-  ユーザーのアクション（ボタンクリック、入力、設定変更）は、HTML
-  要素に直接記述された `onclick` ハンドラや `addEventListener`
-  によって捕捉され、対応する JavaScript 関数が実行されます。
+  ユーザーのアクション（ボタンクリック、入力、設定変更）は、`addEventListener`
+  によって捕捉され、対応する TypeScript 関数が実行されます。
 - **状態に応じた表示切替:** 設定（FiO2
   モード、室内気不使用モード）に応じて、関連する入力フィールドや計算結果の表示内容が動的に変更されます
-  (`toggleFio2Mode`, `toggleNoRoomAirMode`, `updateUI` 内の条件分岐)。
+  (`handleFio2ModeToggle`, `handleNoRoomAirModeToggle`, `updateUI`
+  内の条件分岐)。
+- **TailwindCSS カスタムコンポーネント:** `src/styles/input.css`
+  で定義されたカスタムクラス (`.btn`, `.input-field` など) を利用し、HTML
+  および動的生成される要素のスタイリングを行っています。
 
 ## 計算ロジック
 
-- **時間ベース計算:** `calculateUsage()` 関数は、ソートされた `entries`
+- **時間ベース計算:** `src/utils/calculation.ts` の `calculateUsage()`
+  関数が、ソートされた `entries`
   配列を基に、各入力間の時間差を計算し、その期間の流量と FiO2
-  設定に基づいてガス使用量を積算します。
+  設定に基づいてガス使用量を積算します。この関数は、内部で
+  `calculateGasAmountsForPeriod` (特定期間のガス量計算) や
+  `addUsageToDailyRecord` (日ごとの集計追加)
+  といったヘルパー関数を利用しています。
 - **日ごと集計:**
   計算は日単位で行われ、日付が変わるタイミングで集計がリセットされます。
 - **条件分岐:** FiO2
   モードおよび室内気不使用モードの状態に応じて、適用される計算式が
-  `calculateUsage()` 内で切り替えられます。
+  `calculateGasAmountsForPeriod()`
+  内で切り替えられます。マジックナンバーは定数化されています。
 
 ## 状態管理
 
-- **グローバル変数:** アプリケーションの状態（FiO2
-  モードが有効か、室内気不使用モードが有効か、最後に入力された日付）は、グローバルな
-  JavaScript 変数 (`fio2Mode`, `noRoomAirMode`, `lastDate`)
-  によって管理されています。
+- **グローバル変数 (モジュールスコープ):** アプリケーションの状態（FiO2
+  モードが有効か (`fio2Mode`)、室内気不使用モードが有効か
+  (`noRoomAirMode`)、最後に入力された日付 (`lastDate`)）は、`src/main.ts`
+  内のモジュールスコープ変数によって管理されています。
+- **`lastDate` の初期挙動:** `parseDateTime` 関数において、日付が省略された形式
+  (`HHMM`) での初回入力時（`lastDate` が `null`
+  の場合）、日付は「1日」として扱われます。

@@ -5,12 +5,13 @@
 このツールは、入力された日付時刻と流量から、日ごとの酸素および窒素の使用量を計算します。
 
 [ガス使用量計算ツール（デモ）](https://31103.github.io/ijitools/gascalc/gascalc.html)
+(注意: デモはリファクタリング前のバージョンの可能性があります)
 
 ## 使用方法
 
 1. 「日付時刻」欄に、日付と時刻を `DDHHMM` の形式で入力します。
    - 例：2日9時7分の場合、`20907` と入力します。
-   - 日付を省略することも可能です。その場合、直近で指定した日付を引き継ぎます。
+   - 日付を省略することも可能です。その場合、直近で指定した日付を引き継ぎます。**初回入力で日付を省略した場合は「1日」として扱われます。**
    - 入力は時系列順ではなく、順不同でも可能です。
 2. 「流量 (L/min)」欄に、流量を `L/min` 単位で入力します。
    - 例：酸素 1.5L/min の場合、`1.5` と入力します。
@@ -53,39 +54,73 @@
 - 言語: TypeScript
 - ランタイム/ツールチェーン: Deno
 - CSSフレームワーク: TailwindCSS
+- バンドラ: esbuild (Deno経由)
 
 ## ディレクトリ構造
 
 ```
 gascalc/
+├── dist/
+│   └── gascalc.html  (ビルド成果物)
+├── docs/
+│   └── refactoring-plan.md
+├── memory-bank/
+│   ├── activeContext.md
+│   ├── productContext.md
+│   ├── progress.md
+│   ├── projectbrief.md
+│   ├── systemPatterns.md
+│   └── techContext.md
+├── scripts/
+│   └── clean_temp.ts (一時ファイル削除用スクリプト)
 ├── src/
-│   ├── index.html
-│   ├── main.ts
+│   ├── index.html         (HTMLテンプレート)
+│   ├── main.ts            (アプリケーションエントリーポイント)
 │   ├── styles/
-│   │   └── input.css
-│   ├── utils/
-│   │   ├── calculation.ts
-│   │   └── dom.ts
-│   └── types/
-│       └── entry.ts
-├── deno.jsonc
-├── tailwind.config.js
-├── postcss.config.js
-├── build.ts
+│   │   └── input.css      (TailwindCSS入力ファイル)
+│   ├── types/
+│   │   └── entry.ts       (型定義)
+│   └── utils/
+│       ├── calculation.ts (計算ロジック)
+│       └── dom.ts         (DOM操作)
+├── tests/
+│   └── calculation.test.ts (計算ロジックのテスト)
+├── .gitignore
+├── build.ts               (ビルドスクリプト)
+├── deno.jsonc             (Deno設定ファイル)
 ├── README.md
-└── .gitignore
+└── tailwind.config.js     (TailwindCSS設定ファイル)
 ```
 
 ## ビルド方法
 
-1. CSSビルド: `deno task build:css`
-2. TypeScriptバンドル: `deno task build:js`
-3. HTML生成: `deno task build:html`
-4. 統合ビルド: `deno task build`
+以下の Deno タスクを使用します (`deno.jsonc` で定義)。
+
+- **CSSのビルド:**
+  ```bash
+  deno task build:css
+  ```
+- **HTMLの生成 (JavaScriptのバンドルとインライン展開を含む):**
+  ```bash
+  deno task build:html
+  ```
+- **一時ファイルのクリーンアップ:**
+  ```bash
+  deno task clean:temp
+  ```
+- **統合ビルド (上記をすべて実行):**
+  ```bash
+  deno task build
+  ```
+- **開発モード (TailwindCSSのwatch):**
+  ```bash
+  deno task dev
+  ```
 
 ## 実行方法
 
-`gascalc.html`をブラウザで開きます。
+1. プロジェクトをビルドします: `deno task build`
+2. 生成された `dist/gascalc.html` をブラウザで開きます。
 
 ## 注意点
 
