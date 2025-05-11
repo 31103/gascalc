@@ -1,0 +1,36 @@
+{
+  "tasks": {
+    "build:css": "deno run -A npm:@tailwindcss/cli -i ./src/styles/input.css -o ./dist/.temp/styles.css --minify -v",
+    "build:html": "deno run -A ./build.ts", // build:js は build.ts に統合
+    // Windows と Unix 系 OS の両方に対応するため、OS 固有のコマンドは避けるか、
+    // Deno スクリプト内で OS を判定して実行する方が望ましいですが、
+    // ここでは Windows ユーザーを想定して del を使用します。
+    // 必要であれば、クロスプラットフォームな削除コマンド (例: rimraf) を npm 経由で使うことも検討できます。
+    "clean:temp": "deno run -A scripts/clean_temp.ts",
+    "build": "deno task build:css && deno task build:html && deno task clean:temp", // build:js を削除
+    "dev": "deno run -A npm:@tailwindcss/cli -i ./src/styles/input.css -o ./src/styles/output.css --watch"
+  },
+  "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "dom.asynciterable", "deno.ns"]
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"],
+      "exclude": ["no-explicit-any"]
+    }
+  },
+  "fmt": {
+    "options": {
+      "useTabs": false,
+      "lineWidth": 80,
+      "indentWidth": 2,
+      "singleQuote": false
+    }
+  },
+  "imports": {
+    "@tailwindcss/cli": "npm:@tailwindcss/cli@^4.1.5",
+    "tailwindcss": "npm:tailwindcss@^4.1.5",
+    "@std/encoding": "jsr:@std/encoding@^0.224.0" // JSRパッケージのインポートマッピングを追加
+  }
+  // "imports": {} // deno add npm:... を実行すると自動的に追加される想定
+}

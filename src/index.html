@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ガス使用量計算ツール</title>
+    <!-- TailwindCSS はビルド時にここにインライン展開されます -->
+    <style>
+        /* フォントの定義 - ビルド時にインライン化されるCSSとは別に記述 */
+        @font-face {
+            font-family: 'Roboto';
+            font-style: normal;
+            font-weight: 400;
+            font-display: swap;
+            src: local('Roboto'), local('Roboto-Regular');
+        }
+        @font-face {
+            font-family: 'Roboto';
+            font-style: normal;
+            font-weight: 500;
+            font-display: swap;
+            src: local('Roboto Medium'), local('Roboto-Medium');
+        }
+        @font-face {
+            font-family: 'Noto Sans JP';
+            font-style: normal;
+            font-weight: 400;
+            font-display: swap;
+            src: local('Noto Sans Japanese Regular'), local('NotoSansJP-Regular');
+        }
+        @font-face {
+            font-family: 'Noto Sans JP';
+            font-style: normal;
+            font-weight: 500;
+            font-display: swap;
+            src: local('Noto Sans Japanese Medium'), local('NotoSansJP-Medium');
+        }
+    </style>
+    <link href="./assets/fonts/material-symbols.css" rel="stylesheet">
+</head>
+
+<body class="bg-[var(--md-background)] text-[var(--md-on-background)]">
+    <!-- トップアプリバー -->
+    <header class="md-top-app-bar">
+        <div class="md-top-app-bar-row">
+            <div class="flex items-center">
+                <h1 class="md-top-app-bar-title">ガス使用量計算</h1>
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="clearAllBtn" class="btn btn-text btn-sm">
+                    クリア
+                </button>
+                <button id="settingsBtn" class="btn-icon">
+                    <span class="material-symbols-outlined">settings</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto max-w-3xl p-5 pt-20">
+        <!-- エラーメッセージ用スナックバー (初期状態は非表示) -->
+        <div id="error" class="hidden"></div>
+
+        <!-- メインコンテンツ -->
+        <div class="md-card md-card-elevated p-6">
+            <section class="mb-6">
+                <h2 class="md-headline-small mb-3">入力内容</h2>
+                <ul id="entries" class="md-list max-h-60 overflow-y-auto rounded-lg bg-[var(--md-surface-variant)/0.2] p-2">
+                    <!-- 入力内容はJSで動的に追加 -->
+                    <li class="text-center text-[var(--md-on-surface-variant)] py-4 md-body-medium">まだ入力がありません</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2 class="md-headline-small mb-3">ガス使用量 (日別)</h2>
+                <ul id="usage" class="md-list rounded-lg bg-[var(--md-surface-variant)/0.2] p-2 min-h-[50px]">
+                    <!-- 計算結果はJSで動的に追加 -->
+                    <li class="text-center text-[var(--md-on-surface-variant)] py-4 md-body-medium">入力後に計算結果が表示されます</li>
+                </ul>
+            </section>
+        </div>
+    </main>
+
+    <!-- 設定ダイアログ (モーダル) -->
+    <div id="settingsOverlay" class="md-dialog-container hidden">
+        <div class="md-dialog">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="md-dialog-title">設定</h2>
+                <!-- <button id="settingsCloseBtn" class="btn-icon">✕</button> --> <!-- 右上の閉じるボタンを削除 -->
+            </div>
+            <div class="md-dialog-content space-y-6">
+                <div class="flex items-center justify-between">
+                    <label for="fio2Mode" class="md-body-large flex items-center cursor-pointer">
+                        FiO2モード
+                        <span class="md-tooltip-trigger ml-2">
+                            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[var(--md-surface-variant)] text-[var(--md-on-surface-variant)] text-xs">?</span>
+                            <span class="md-tooltip w-64">FiO2を指定して計算 (ハイフロー/人工呼吸器用)</span>
+                        </span>
+                    </label>
+                    <div class="md-switch">
+                        <input type="checkbox" id="fio2Mode" class="md-switch-input">
+                        <div class="md-switch-track"></div>
+                        <div class="md-switch-thumb"></div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between">
+                    <label for="noRoomAirMode" class="md-body-large flex items-center cursor-pointer">
+                        室内気不使用
+                        <span class="md-tooltip-trigger ml-2">
+                            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[var(--md-surface-variant)] text-[var(--md-on-surface-variant)] text-xs">?</span>
+                            <span class="md-tooltip w-64">医療ガスのみ使用 (一部の人工呼吸器用)<br>※FiO2モード有効時のみ</span>
+                        </span>
+                    </label>
+                    <div class="md-switch">
+                        <input type="checkbox" id="noRoomAirMode" class="md-switch-input" disabled>
+                        <div class="md-switch-track"></div>
+                        <div class="md-switch-thumb"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="md-dialog-actions">
+                <button id="settingsCloseBtn2" class="btn btn-text">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- フッター入力エリア -->
+    <footer class="fixed bottom-0 left-0 right-0 bg-[var(--md-surface)] py-3 px-4 sm:py-4 sm:px-6 shadow-lg border-t border-[var(--md-outline-variant)]">
+        <div class="container mx-auto max-w-3xl">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-3">
+                <div class="flex flex-col sm:flex-row sm:items-end gap-3 w-full sm:w-auto">
+                    <div class="input-field-container mb-0 flex-grow sm:flex-grow-0 sm:w-28">
+                        <input type="text" id="dateTime" placeholder=" " class="input-field w-full">
+                        <label for="dateTime" class="input-field-label">日付時刻</label>
+                        <div class="input-field-helper flex items-center">
+                            DDHHMM
+                            <span class="md-tooltip-trigger ml-1">
+                                <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[var(--md-surface-variant)] text-[var(--md-on-surface-variant)] text-[10px]">?</span>
+                                <span class="md-tooltip">例: 020907<br>日付省略可</span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="input-field-container mb-0 flex-grow sm:flex-grow-0 sm:w-28">
+                        <input type="text" id="flow" placeholder=" " class="input-field w-full">
+                        <label for="flow" class="input-field-label">流量(L/min)</label>
+                        <div class="input-field-helper flex items-center">
+                            数値
+                            <span class="md-tooltip-trigger ml-1">
+                                <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[var(--md-surface-variant)] text-[var(--md-on-surface-variant)] text-[10px]">?</span>
+                                <span class="md-tooltip">例: 1.5</span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="input-field-container mb-0 flex-grow sm:flex-grow-0 sm:w-28 hidden" id="fio2InputGroup">
+                        <input type="text" id="fio2Input" placeholder=" " class="input-field w-full">
+                        <label for="fio2Input" class="input-field-label">FiO2(%)</label>
+                        <div class="input-field-helper flex items-center">
+                            21-100
+                            <span class="md-tooltip-trigger ml-1">
+                                <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[var(--md-surface-variant)] text-[var(--md-on-surface-variant)] text-[10px]">?</span>
+                                <span class="md-tooltip">21-100の整数</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <button id="addEntryBtn" class="btn-icon bg-[var(--md-primary)] text-[var(--md-on-primary)] w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0 shadow-md hover:shadow-lg transition-shadow mt-2 sm:mt-0" title="追加">
+                    <span class="material-symbols-outlined text-2xl sm:text-3xl">add</span>
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- スナックバー (初期状態は非表示) -->
+    <div id="snackbar" class="md-snackbar hidden">
+        <span id="snackbarText"></span>
+        <button id="snackbarAction" class="md-snackbar-action">閉じる</button>
+    </div>
+
+    <!-- JavaScript はビルド時にここにインライン展開されます -->
+</body>
+
+</html>
