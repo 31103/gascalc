@@ -2,22 +2,17 @@
 
 ## 現在のフォーカス
 
-- リファクタリング計画 (`docs/refactoring-plan.md`)
-  のフェーズ7「動作確認と調整」を実施中。
+- プロジェクト全体の見直し、無駄なファイル、コメント等の洗い出しタスクを実施中。
 - 現在のブランチ: `feature/refactor-gascalc`
 
 ## 最近の変更 (このタスク内)
 
-- フェーズ7で発生した問題（ボタン無効、HHMM入力不可、デザイン崩れ）を特定。
-- ボタンイベントリスナーを修正 (`src/index.html`, `src/main.ts`,
-  `src/utils/dom.ts`)。
-- 日付時刻処理 (HHMM形式入力) を修正 (`src/main.ts`)。
-- TailwindCSSのデザイン適用問題は未解決のため、別タスクとして切り出し、`docs/refactoring-plan.md`
-  に記載。
-- 上記修正内容をコミット (`fix: ボタンイベントリスナーと日付時刻処理を修正`)。
+- `src/main.ts`、`src/utils/dom.ts`、`src/index.html`から不要なコメントを削除。
+- `README.md`を更新し、リファクタリング後の技術スタック、ディレクトリ構造、ビルド方法、実行方法などを記載。
 
 ## 次のステップ
 
-- リファクタリング計画 Step 8: ドキュメント更新 (`README.md`, Memory Bank)
-  に進む。
-- 別タスクとして切り出した TailwindCSS の問題調査を行う。
+- `memory-bank/systemPatterns.md`を更新し、変更されたシステムパターンを記録。
+- `memory-bank/techContext.md`を更新し、変更された技術コンテキストを記録。
+- `memory-bank/progress.md`を更新し、今回のタスクの進捗を記録。
+- 完了処理。

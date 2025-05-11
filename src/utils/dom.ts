@@ -21,7 +21,6 @@ export const usageList = () => getElementById<HTMLUListElement>('usage');
 export const settingsOverlay = () => getElementById<HTMLDivElement>('settingsOverlay');
 export const fio2ModeCheckbox = () => getElementById<HTMLInputElement>('fio2Mode');
 export const noRoomAirModeCheckbox = () => getElementById<HTMLInputElement>('noRoomAirMode');
-// ボタン要素の Getter を追加
 export const addEntryBtn = () => getElementById<HTMLButtonElement>('addEntryBtn');
 export const clearAllBtn = () => getElementById<HTMLButtonElement>('clearAllBtn');
 export const settingsBtn = () => getElementById<HTMLButtonElement>('settingsBtn');
@@ -46,7 +45,6 @@ export function updateUI(
     deleteEntryCallback: (index: number) => void,
     copyUsageCallback: (oxygen: string, nitrogen: string) => void,
 ): void {
-    // 入力リストの更新
     const entriesUl = entriesList();
     entriesUl.innerHTML = ''; // 一旦クリア
     if (entriesData.length === 0) {
@@ -64,7 +62,6 @@ export function updateUI(
             `;
             entriesUl.appendChild(li);
         });
-        // イベントリスナーを一括で設定 (Event Delegation)
         entriesUl.onclick = (event) => {
              const target = event.target as HTMLElement;
              if (target.tagName === 'BUTTON') {
@@ -82,7 +79,6 @@ export function updateUI(
     }
 
 
-    // ガス使用量リストの更新
     const usageData = calculateUsage(entriesData, fio2Mode, noRoomAirMode);
     const usageUl = usageList();
     usageUl.innerHTML = ''; // 一旦クリア
@@ -113,7 +109,6 @@ export function updateUI(
             `;
             usageUl.appendChild(li);
         });
-         // イベントリスナーを一括で設定 (Event Delegation)
          usageUl.onclick = (event) => {
              const target = event.target as HTMLElement;
              if (target.tagName === 'BUTTON' && target.dataset.action === 'copy') {
@@ -208,9 +203,6 @@ export function copyUsageToClipboard(oxygenUsage: string, nitrogenUsage: string,
     }
     navigator.clipboard.writeText(text)
         .then(() => {
-            // 必要であればコピー成功のフィードバックをユーザーに表示
-            // 例: displayError("クリップボードにコピーしました。");
-            // setTimeout(() => displayError(""), 2000); // 2秒後にメッセージを消す
         })
         .catch(err => {
             console.error('コピーに失敗しました: ', err);

@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ガス使用量計算ツール</title>
     <!-- TailwindCSS はビルド時にここにインライン展開されます -->
-    <!-- <link rel="stylesheet" href="styles/output.css"> --> <!-- 開発時用 (deno task dev) -->
 </head>
 
 <body class="bg-gray-100 text-gray-800 font-sans">
@@ -118,7 +117,7 @@
                         </label>
                         <input type="text" id="flow" placeholder="例: 3" class="w-full sm:w-20 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                    <div class="flex-grow sm:flex-grow-0 hidden" id="fio2InputGroup"> {/* 初期状態は非表示 */}
+                    <div class="flex-grow sm:flex-grow-0 hidden" id="fio2InputGroup"> <!-- 初期状態は非表示 -->
                         <label for="fio2Input" class="block text-xs font-medium text-gray-600 mb-1 flex items-center">
                             FiO2(%)
                              <span class="relative group ml-1">
@@ -139,7 +138,6 @@
     </div>
 
     <!-- JavaScript はビルド時にここにインライン展開されます -->
-    <!-- <script type="module" src="main.ts"></script> --> <!-- 開発時用 -->
 </body>
 
 </html>

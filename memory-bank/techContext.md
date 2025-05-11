@@ -8,11 +8,14 @@
     viewport 設定）
   - JavaScript (ES6+): DOM 操作、イベント処理、計算ロジック、状態管理
 - **フレームワーク/ライブラリ:** なし (バニラ構成)
+- **その他:**
+  - TailwindCSS: CSSフレームワーク
+  - Deno: JavaScriptとTypeScriptのランタイム
 
 ## 開発環境
 
 - **依存関係:** なし。Node.js やパッケージマネージャ (npm, yarn) は不要。
-- **ビルドプロセス:** なし。HTML, CSS, JavaScript ファイルを直接編集。
+- **ビルドプロセス:** Denoタスクを使用
 - **推奨ツール:** テキストエディタ (VS Code など)、Web ブラウザ
   (開発者ツールを含む)
 

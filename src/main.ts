@@ -8,7 +8,6 @@ import {
   clearInputFields,
   populateInputFieldsForEdit,
   copyUsageToClipboard,
-  // Element Getters from dom.ts
   dateTimeInput,
   flowInput,
   fio2Input,
@@ -28,7 +27,6 @@ let fio2Mode = false;
 let noRoomAirMode = false;
 
 // --- DOM Element References ---
-// Element getters are now imported from dom.ts
 
 
 // --- Core Functions ---
@@ -48,8 +46,6 @@ function parseDateTime(input: string): Date | null {
         input = input.padStart(4, '0');
         if (!lastDate) { // 初回入力の場合、日付を1日に設定
             day = 1;
-            // displayError("最初のエントリでは日付を省略できません。DDHHMM形式で入力してください。"); // 削除
-            // return null; // 削除
         } else { // 2回目以降は前回の日付を使用
             day = lastDate.getDate();
         }
@@ -73,8 +69,6 @@ function parseDateTime(input: string): Date | null {
     // 月をまたぐ場合などを考慮すると、より堅牢な日付処理が必要になる可能性がある
     const date = new Date(now.getFullYear(), now.getMonth(), day, hour, minute);
 
-    // パース成功。lastDate の更新は addEntry で行う
-    // lastDate = date; // ここでは更新しない
     return date;
 }
 
