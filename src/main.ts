@@ -41,7 +41,11 @@ function parseDateTime(input: string): Date | null {
 
     if (input.length <= 4) { // HHMM 形式 (日付省略)
         input = input.padStart(4, '0');
-        day = lastDate ? lastDate.getDate() : now.getDate(); // lastDateがなければ現在の日付
+        if (!lastDate) { // 初回入力 (lastDate が null) の場合、日付を1日に設定
+            day = 1;
+        } else { // 2回目以降は前回の日付を使用
+            day = lastDate.getDate();
+        }
         hour = parseInt(input.slice(0, 2), 10);
         minute = parseInt(input.slice(2, 4), 10);
     } else { // DDHHMM 形式
