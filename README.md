@@ -3,13 +3,16 @@
 ## 概要
 
 このツールは、入力された日付時刻と流量から、日ごとの酸素および窒素の使用量を計算します。
+Material Design 3
+に準拠したモダンなUI/UXに刷新され、主要な操作はアイコンボタンで行えるようになりました。
+ビルド成果物は単一のHTMLファイルとして提供され、ローカル環境でインターネット接続なしに動作します。
 
 [ガス使用量計算ツール（デモ）](https://31103.github.io/ijitools/gascalc/gascalc.html)
 (注意: デモはリファクタリング前のバージョンの可能性があります)
 
 ## 使用方法
 
-1. 「日付時刻」欄に、日付と時刻を `DDHHMM` の形式で入力します。
+1. フッターの「日付時刻」欄に、日付と時刻を `DDHHMM` の形式で入力します。
    - 例：2日9時7分の場合、`20907` と入力します。
    - 日付を省略することも可能です。その場合、直近で指定した日付を引き継ぎます。**初回入力で日付を省略した場合は「1日」として扱われます。**
    - 入力は時系列順ではなく、順不同でも可能です。
@@ -19,13 +22,19 @@
 3. FiO2モードが有効になっている場合は、「FiO2
    (%)」欄に、酸素濃度をパーセントで入力します。
    - 21 以上 100 以下の整数を入力してください。
-4. 「追加」ボタンをクリックします。
-5. 入力した内容がリストに追加され、酸素および窒素の使用量が計算されます。
-6. 「クリア」ボタンをクリックすると、入力内容と計算結果がクリアされます。
+4. フッターの「<span class="material-symbols-outlined">add</span>
+   (追加)」アイコンボタンをクリックします。
+5. 入力した内容がリストに追加され、酸素および窒素の使用量が計算されます。リスト内の各項目には「<span class="material-symbols-outlined">edit</span>
+   (修正)」「<span class="material-symbols-outlined">delete</span>
+   (削除)」アイコンボタンが表示されます。
+6. 計算結果の各項目には「<span class="material-symbols-outlined">content_copy</span>
+   (コピー)」アイコンボタンが表示されます。
+7. トップアプリバーの「クリア」ボタンをクリックすると、入力内容と計算結果がクリアされます。
 
 ## 設定
 
-ツールバーの歯車アイコンをクリックすると、設定画面を開くことができます。
+トップアプリバーの「<span class="material-symbols-outlined">settings</span>
+(設定)」アイコンをクリックすると、設定ダイアログを開くことができます。
 
 ### FiO2モード
 
@@ -54,6 +63,7 @@
 - 言語: TypeScript
 - ランタイム/ツールチェーン: Deno
 - CSSフレームワーク: TailwindCSS
+- アイコン: Material Symbols (ローカルホスティング)
 - バンドラ: esbuild (Deno経由)
 
 ## ディレクトリ構造
@@ -74,6 +84,10 @@ gascalc/
 ├── scripts/
 │   └── clean_temp.ts (一時ファイル削除用スクリプト)
 ├── src/
+│   ├── assets/
+│   │   └── fonts/
+│   │       ├── material-symbols.css       (Material Symbols用CSS)
+│   │       └── MaterialSymbolsOutlined.ttf (Material Symbolsフォントファイル)
 │   ├── index.html         (HTMLテンプレート)
 │   ├── main.ts            (アプリケーションエントリーポイント)
 │   ├── styles/
@@ -96,31 +110,26 @@ gascalc/
 
 以下の Deno タスクを使用します (`deno.jsonc` で定義)。
 
-- **CSSのビルド:**
-  ```bash
-  deno task build:css
-  ```
-- **HTMLの生成 (JavaScriptのバンドルとインライン展開を含む):**
-  ```bash
-  deno task build:html
-  ```
-- **一時ファイルのクリーンアップ:**
-  ```bash
-  deno task clean:temp
-  ```
-- **統合ビルド (上記をすべて実行):**
+- **統合ビルド (CSSビルド、JSバンドル、アセットインライン化、単一HTML生成):**
   ```bash
   deno task build
   ```
+  ビルド成果物は `dist/gascalc.html`
+  という単一のHTMLファイルとして出力されます。
+  このファイルには、CSS、JavaScript、アイコンフォントがすべてインラインで埋め込まれています。
+
 - **開発モード (TailwindCSSのwatch):**
   ```bash
   deno task dev
   ```
+  開発中は `src/index.html`
+  を直接ブラウザで開いて確認します（この場合、TailwindCSSの変更は
+  `src/styles/output.css` に反映されます）。
 
 ## 実行方法
 
 1. プロジェクトをビルドします: `deno task build`
-2. 生成された `dist/gascalc.html` をブラウザで開きます。
+2. 生成された単一ファイル `dist/gascalc.html` をブラウザで開きます。
 
 ## 注意点
 

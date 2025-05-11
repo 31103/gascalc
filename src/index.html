@@ -37,6 +37,7 @@
             src: local('Noto Sans Japanese Medium'), local('NotoSansJP-Medium');
         }
     </style>
+    <link href="./assets/fonts/material-symbols.css" rel="stylesheet">
 </head>
 
 <body class="bg-[var(--md-background)] text-[var(--md-on-background)]">
@@ -50,9 +51,8 @@
                 <button id="clearAllBtn" class="btn btn-text btn-sm">
                     クリア
                 </button>
-                <button id="settingsBtn" class="btn-icon md-tooltip-trigger">
-                    <span>⚙️</span>
-                    <span class="md-tooltip">設定を開く</span>
+                <button id="settingsBtn" class="btn-icon">
+                    <span class="material-symbols-outlined">settings</span>
                 </button>
             </div>
         </div>
@@ -164,8 +164,8 @@
                         </div>
                     </div>
                 </div>
-                <button id="addEntryBtn" class="btn btn-primary w-full sm:w-auto flex-shrink-0 shadow-md hover:shadow-lg transition-shadow mt-2 sm:mt-0">
-                    追加
+                <button id="addEntryBtn" class="btn-icon bg-[var(--md-primary)] text-[var(--md-on-primary)] w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0 shadow-md hover:shadow-lg transition-shadow mt-2 sm:mt-0" title="追加">
+                    <span class="material-symbols-outlined text-2xl sm:text-3xl">add</span>
                 </button>
             </div>
         </div>

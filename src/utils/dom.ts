@@ -80,11 +80,11 @@ export function updateUI(
             li.className = 'md-list-item md-card p-3 mb-2';
             // ボタンが常に右側に配置されるように修正
             li.innerHTML = `
-                <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center justify-between gap-2">
                     <span class="md-body-large flex-grow">${formatDate(entry.dateTime)} ${entry.flow}L/min${fio2Mode ? ` FiO2:${entry.fio2}%` : ''}</span>
-                    <div class="flex gap-2 flex-shrink-0">
-                        <button class="btn btn-text btn-sm" data-index="${index}" data-action="edit">修正</button>
-                        <button class="btn btn-text btn-sm text-[var(--md-error)]" data-index="${index}" data-action="delete">削除</button>
+                    <div class="flex gap-1 flex-shrink-0 ml-auto">
+                        <button class="btn-icon btn-sm" data-index="${index}" data-action="edit" title="修正"><span class="material-symbols-outlined">edit</span></button>
+                        <button class="btn-icon btn-sm text-[var(--md-error)]" data-index="${index}" data-action="delete" title="削除"><span class="material-symbols-outlined">delete</span></button>
                     </div>
                 </div>
             `;
@@ -128,11 +128,10 @@ export function updateUI(
             if (noRoomAirMode && amounts.nitrogen > 0) {
                 usageText += ` / 窒素 ${nitrogenUsageStr}L`;
             }
-            // ボタンが常に右側に配置されるように修正
             li.innerHTML = `
-                <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center justify-between gap-2">
                     <span class="md-body-large flex-grow">${usageText}</span>
-                    <button class="btn btn-primary btn-sm flex-shrink-0" data-oxygen="${oxygenUsageStr}" data-nitrogen="${nitrogenUsageStr}" data-action="copy">コピー</button>
+                    <button class="btn-icon btn-sm text-[var(--md-primary)] flex-shrink-0 ml-auto" data-oxygen="${oxygenUsageStr}" data-nitrogen="${nitrogenUsageStr}" data-action="copy" title="コピー"><span class="material-symbols-outlined">content_copy</span></button>
                 </div>
             `;
             usageUl.appendChild(li);

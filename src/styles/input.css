@@ -369,13 +369,17 @@
   
   /* ツールチップ */
   .md-tooltip {
-    @apply absolute z-20 px-3 py-1.5 text-xs text-white rounded opacity-0 transition-opacity duration-200 pointer-events-none whitespace-nowrap;
+    @apply absolute z-[60] px-3 py-1.5 text-xs text-white rounded opacity-0 transition-opacity duration-200 pointer-events-none whitespace-nowrap; /* z-indexをダイアログより大きく */
     background-color: #616161;
     bottom: 100%;
     left: 50%;
     transform: translateX(-50%) translateY(-4px);
   }
   
+  .md-tooltip-trigger { /* displayプロパティを追加 */
+    @apply relative inline-block; /* ホバー領域確保のため */
+  }
+
   .md-tooltip-trigger:hover .md-tooltip {
     @apply opacity-100;
   }

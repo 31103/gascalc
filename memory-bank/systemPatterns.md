@@ -1,63 +1,75 @@
-# System Patterns
+# システムパターン (System Patterns)
 
 ## アーキテクチャ
 
-- **シングルページアプリケーション (SPA):** `dist/gascalc.html` という単一の
-  HTML ファイルで構成されています（ビルド後）。ソースは `src/`
-  ディレクトリ以下に分割されています。
-- **クライアントサイドレンダリング:** すべてのロジックと UI 更新はブラウザ側の
-  TypeScript (JavaScriptにコンパイル)
-  で実行されます。サーバーサイドの処理はありません。
-- **技術スタック:** TypeScript を Deno ランタイムで利用。スタイリングには
-  TailwindCSS を使用。
+- **フロントエンドのみ**:
+  静的なHTML、CSS、JavaScriptで構成されるクライアントサイドアプリケーション。
+- **単一HTMLファイル**:
+  ビルド成果物は、すべてのCSS、JavaScript、アセット（アイコンフォントなど）をインライン化した単一のHTMLファイル
+  (`dist/gascalc.html`)。これにより、オフラインでの利用と配布の容易性を実現。
+- **イベント駆動**: ユーザーインタラクションはDOMイベントを通じて処理される。
+- **状態管理**:
+  アプリケーションの状態（入力エントリ、モード設定など）は、`src/main.ts`
+  内の変数として管理される。状態変更時にはUIを再描画。
 
-## データ管理
+## UI/UX
 
-- **インメモリ:** 入力されたデータ（日付時刻、流量、FiO2）は TypeScript の
-  `entries` 配列にオブジェクトとして格納されます。
-- **非永続的:**
-  データはブラウザのメモリ上にのみ存在し、ページのリロードやクローズで失われます。ローカルストレージ等による永続化は行われていません。
-- **ソート:** 新しいデータが追加されるたびに `entries`
-  配列は日付時刻順にソートされます。
+- **Material Design 3準拠**: GoogleのMaterial Design
+  3ガイドラインに基づいたデザインシステムを採用。
+  - カラーシステム、タイポグラフィ、コンポーネントスタイル、エレベーション、形状、モーションなど。
+- **アイコン**: Material Symbolsを使用。フォントファイル (`.ttf`)
+  と関連CSSをローカルにホスティングし、ビルド時にHTMLへインライン化。
+- **レスポンシブデザイン**:
+  TailwindCSSのユーティリティクラスを活用し、様々な画面サイズに対応。
+- **コンポーネントベースのUI構成**:
+  - トップアプリバー: タイトル、クリアボタン、設定ボタン。
+  - カード: 入力内容リスト、計算結果リストの表示。
+  - 入力フィールド: フローティングラベル付きのテキスト入力。
+  - ボタン: アイコンボタン、テキストボタン。
+  - ダイアログ: 設定画面のモーダル表示。
+  - スイッチ: 設定項目（FiO2モード、室内気不使用モード）のトグル。
+  - スナックバー: エラーメッセージや通知の表示。
+  - ツールチップ: アイコンや入力フィールドの補助説明。
 
-## UI パターン
+## ビルドプロセス (`build.ts`)
 
-- **DOM 直接操作:** `src/utils/dom.ts` の `updateUI()` 関数が `entries`
-  配列の内容に基づいて HTML
-  要素（リスト項目など）を動的に生成・更新します。DOM要素は効率化のため初回読み込み時にキャッシュされます。
-- **イベント駆動:**
-  ユーザーのアクション（ボタンクリック、入力、設定変更）は、`addEventListener`
-  によって捕捉され、対応する TypeScript 関数が実行されます。
-- **状態に応じた表示切替:** 設定（FiO2
-  モード、室内気不使用モード）に応じて、関連する入力フィールドや計算結果の表示内容が動的に変更されます
-  (`handleFio2ModeToggle`, `handleNoRoomAirModeToggle`, `updateUI`
-  内の条件分岐)。
-- **TailwindCSS カスタムコンポーネント:** `src/styles/input.css`
-  で定義されたカスタムクラス (`.btn`, `.input-field` など) を利用し、HTML
-  および動的生成される要素のスタイリングを行っています。
+1. **ディレクトリ準備**: `dist` および `dist/.temp` ディレクトリを作成。
+2. **TailwindCSSビルド**: `deno task build:css` を実行し、`src/styles/input.css`
+   から `dist/.temp/styles.css` を生成（minify含む）。
+3. **JavaScriptバンドル**: `esbuild` を使用し、`src/main.ts`
+   をエントリーポイントとしてJavaScriptをバンドル・minifyし、メモリ上に出力。
+4. **アセット読み込みと加工**:
+   - `src/index.html` (HTMLテンプレート) を読み込み。
+   - `dist/.temp/styles.css` (Tailwind CSS) を読み込み。
+   - `src/assets/fonts/material-symbols.css` (アイコンフォント用CSS)
+     を読み込み。
+   - `src/assets/fonts/MaterialSymbolsOutlined.ttf` (アイコンフォントファイル)
+     を読み込み、Base64エンコード。
+   - アイコンフォント用CSS内のフォントファイル参照を、Base64エンコードされたデータURIに置換。
+5. **HTMLへのインジェクション**:
+   - HTMLテンプレート内のプレースホルダコメントを、Tailwind
+     CSS、加工済みアイコンフォントCSS、バンドル済みJavaScriptでそれぞれ置換し、インライン化。
+   - 開発用のCSS/JSリンクコメントを削除。
+   - ライセンス情報（Material Symbols）をHTMLコメントとして `</body>`
+     直前に挿入。
+6. **最終HTML出力**: 加工済みのHTMLを `dist/gascalc.html` として書き出し。
+7. **一時ファイルクリーンアップ**: `deno task clean:temp` を実行し、`dist/.temp`
+   ディレクトリを削除 (これは `deno.jsonc` の `build`
+   タスクの一部として実行される)。
 
-## 計算ロジック
+## 状態管理のパターン
 
-- **時間ベース計算:** `src/utils/calculation.ts` の `calculateUsage()`
-  関数が、ソートされた `entries`
-  配列を基に、各入力間の時間差を計算し、その期間の流量と FiO2
-  設定に基づいてガス使用量を積算します。この関数は、内部で
-  `calculateGasAmountsForPeriod` (特定期間のガス量計算) や
-  `addUsageToDailyRecord` (日ごとの集計追加)
-  といったヘルパー関数を利用しています。
-- **日ごと集計:**
-  計算は日単位で行われ、日付が変わるタイミングで集計がリセットされます。
-- **条件分岐:** FiO2
-  モードおよび室内気不使用モードの状態に応じて、適用される計算式が
-  `calculateGasAmountsForPeriod()`
-  内で切り替えられます。マジックナンバーは定数化されています。
+- `src/main.ts` がアプリケーションの主要な状態（`entries`, `fio2Mode`,
+  `noRoomAirMode` など）を保持。
+- DOMイベント（クリック、変更など）が発生すると、対応するハンドラ関数が状態を更新。
+- 状態更新後、`updateUI` 関数（`src/utils/dom.ts`
+  内）が呼び出され、現在の状態に基づいてDOMを再構築・更新。
+- `localStorage` などによる状態の永続化は行っていない。
 
-## 状態管理
+## CSS設計
 
-- **グローバル変数 (モジュールスコープ):** アプリケーションの状態（FiO2
-  モードが有効か (`fio2Mode`)、室内気不使用モードが有効か
-  (`noRoomAirMode`)、最後に入力された日付 (`lastDate`)）は、`src/main.ts`
-  内のモジュールスコープ変数によって管理されています。
-- **`lastDate` の初期挙動:** `parseDateTime` 関数において、日付が省略された形式
-  (`HHMM`) での初回入力時（`lastDate` が `null`
-  の場合）、日付は「1日」として扱われます。
+- **TailwindCSS**: ユーティリティファーストのアプローチ。
+- **カスタムCSS**: `src/styles/input.css` にて、Material Design
+  3のデザイントークン（CSS変数として定義）やカスタムコンポーネントスタイル（例:
+  `.btn`, `.input-field`, `.md-card` など）を `@layer components` で定義。
+- アイコンフォント用のCSSもインライン化される。

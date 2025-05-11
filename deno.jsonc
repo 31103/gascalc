@@ -29,7 +29,8 @@
   },
   "imports": {
     "@tailwindcss/cli": "npm:@tailwindcss/cli@^4.1.5",
-    "tailwindcss": "npm:tailwindcss@^4.1.5"
+    "tailwindcss": "npm:tailwindcss@^4.1.5",
+    "@std/encoding": "jsr:@std/encoding@^0.224.0" // JSRパッケージのインポートマッピングを追加
   }
   // "imports": {} // deno add npm:... を実行すると自動的に追加される想定
 }
