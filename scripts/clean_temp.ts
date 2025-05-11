@@ -5,12 +5,12 @@ async function cleanTempDir(): Promise<void> {
   const tempDirPath = "dist/.temp";
   try {
     await Deno.remove(tempDirPath, { recursive: true });
-    console.info(`[INFO] Successfully removed ${tempDirPath}`);
+    console.log(`Successfully removed ${tempDirPath}`);
   } catch (error) {
     if (error instanceof Deno.errors.NotFound) {
-      console.info(`[INFO] ${tempDirPath} not found, nothing to remove.`);
+      console.log(`${tempDirPath} not found, nothing to remove.`);
     } else {
-      console.error(`[ERROR] Error removing ${tempDirPath}:`, error);
+      console.error(`Error removing ${tempDirPath}:`, error);
       Deno.exit(1);
     }
   }

@@ -65,28 +65,26 @@ async function build() {
 
     // Read and Base64 encode icon font file
     const iconFontFilePath = `${SRC_DIR}/assets/fonts/MaterialSymbolsOutlined.ttf`;
-    let fontDataUri = '';
+    // ファイルが存在するか確認してから読み込む (オプション)
     try {
         await Deno.stat(iconFontFilePath); // ファイルの存在確認
-        const fontFileContent = await Deno.readFile(iconFontFilePath);
-        const base64FontData = encodeBase64(fontFileContent);
-        fontDataUri = `data:font/ttf;base64,${base64FontData}`;
-
-        // Replace font file path in CSS with data URI
-        iconFontCssContent = iconFontCssContent.replace(
-          /url\(\s*['"]?(\.\/MaterialSymbolsOutlined\.ttf)['"]?\s*\)/g,
-          `url(${fontDataUri})`
-        );
-        console.log("Icon font file processed successfully.");
     } catch (e) {
         if (e instanceof Deno.errors.NotFound) {
             console.warn(`Icon font file not found at ${iconFontFilePath}. Icons might not be displayed.`);
-            // Skip icon font CSS injection
-            iconFontCssContent = '';
+            // アイコンフォントCSSのインジェクションをスキップするなどの処理も可能
         } else {
             throw e; // その他のエラーは再スロー
         }
     }
+    const fontFileContent = await Deno.readFile(iconFontFilePath);
+    const base64FontData = encodeBase64(fontFileContent);
+    const fontDataUri = `data:font/ttf;base64,${base64FontData}`;
+
+    // Replace font file path in CSS with data URI
+    iconFontCssContent = iconFontCssContent.replace(
+      /url\(\s*['"]?(\.\/MaterialSymbolsOutlined\.ttf)['"]?\s*\)/g,
+      `url(${fontDataUri})`
+    );
     console.log("Files and font data read successfully.");
 
     // --- 4. Inject CSS (Tailwind and Icon Font) and JS into HTML ---

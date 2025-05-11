@@ -49,25 +49,23 @@ function calculateGasAmountsForPeriod(
   let oxygenAmount = 0;
   let nitrogenAmount = 0;
 
-  if (!fio2Mode) {
+  if (fio2Mode) {
+    if (noRoomAirMode) {
+      // 室内気不使用モード
+      oxygenAmount = (entry.fio2 * PERCENT_TO_DECIMAL * entry.flow) * durationMin;
+      nitrogenAmount = ((100 - entry.fio2) * PERCENT_TO_DECIMAL * entry.flow) * durationMin;
+    } else {
+      // FiO2モード (室内気使用)
+      // FiO2が空気中の酸素濃度(21%)を超える場合のみ追加酸素を計算
+      if (entry.fio2 > DEFAULT_FIO2_IN_AIR) {
+        oxygenAmount = ((entry.fio2 - DEFAULT_FIO2_IN_AIR) * PERCENT_TO_DECIMAL / NON_OXYGEN_GAS_RATIO_IN_AIR * entry.flow) * durationMin;
+      }
+      // 室内気使用時は窒素は計算しない (消費されるのは追加酸素のみ)
+    }
+  } else {
     // 定量酸素モード
     oxygenAmount = entry.flow * durationMin;
     // 定量酸素モード時は窒素は計算しない
-    return { oxygen: oxygenAmount, nitrogen: nitrogenAmount };
-  }
-
-  // FiO2モードの場合
-  if (noRoomAirMode) {
-    // 室内気不使用モード
-    oxygenAmount = (entry.fio2 * PERCENT_TO_DECIMAL * entry.flow) * durationMin;
-    nitrogenAmount = ((100 - entry.fio2) * PERCENT_TO_DECIMAL * entry.flow) * durationMin;
-  } else {
-    // FiO2モード (室内気使用)
-    // FiO2が空気中の酸素濃度(21%)を超える場合のみ追加酸素を計算
-    if (entry.fio2 > DEFAULT_FIO2_IN_AIR) {
-      oxygenAmount = ((entry.fio2 - DEFAULT_FIO2_IN_AIR) * PERCENT_TO_DECIMAL / NON_OXYGEN_GAS_RATIO_IN_AIR * entry.flow) * durationMin;
-    }
-    // 室内気使用時は窒素は計算しない (消費されるのは追加酸素のみ)
   }
   return { oxygen: oxygenAmount, nitrogen: nitrogenAmount };
 }
@@ -175,10 +173,8 @@ export function calculateUsage(
   // 結果を小数点以下1桁に丸める
   Object.keys(usage).forEach((dateKey) => {
     const dateNum = parseInt(dateKey, 10);
-    if (!isNaN(dateNum) && Object.prototype.hasOwnProperty.call(usage, dateNum)) {
-      usage[dateNum].oxygen = Math.round(usage[dateNum].oxygen * 10) / 10;
-      usage[dateNum].nitrogen = Math.round(usage[dateNum].nitrogen * 10) / 10;
-    }
+    usage[dateNum].oxygen = Math.round(usage[dateNum].oxygen * 10) / 10;
+    usage[dateNum].nitrogen = Math.round(usage[dateNum].nitrogen * 10) / 10;
   });
 
   return usage;
