@@ -16,10 +16,11 @@ import {
   addEntryBtn,
   clearAllBtn,
   settingsBtn,
-  settingsCloseBtn,
+  // settingsCloseBtn, // 削除
   settingsCloseBtn2,
   snackbarAction,
   fio2InputGroup,
+  settingsOverlay, // settingsOverlay をインポートに追加
 } from "./utils/dom.ts";
 
 // --- Application State ---
@@ -190,10 +191,27 @@ function initialize(): void {
 
     addEntryBtn().addEventListener('click', addEntry);
     clearAllBtn().addEventListener('click', clearAll);
-    settingsBtn().addEventListener('click', toggleSettings);
-    settingsCloseBtn().addEventListener('click', toggleSettings);
-    settingsCloseBtn2().addEventListener('click', toggleSettings);
+    settingsBtn().addEventListener('click', () => toggleSettings()); // イベントオブジェクトを渡さない
+    settingsCloseBtn2().addEventListener('click', () => toggleSettings()); // イベントオブジェクトを渡さない
+    settingsOverlay().addEventListener('click', (event) => toggleSettings(event)); // オーバーレイクリック
     snackbarAction().addEventListener('click', () => displayError(''));
+
+    // トグルスイッチのクリックイベント
+    const fio2Switch = fio2ModeCheckbox().parentElement?.closest('.md-switch');
+    if (fio2Switch) {
+        fio2Switch.addEventListener('click', () => {
+            fio2ModeCheckbox().click(); // チェックボックスのクリックイベントを発火
+        });
+    }
+
+    const noRoomAirSwitch = noRoomAirModeCheckbox().parentElement?.closest('.md-switch');
+    if (noRoomAirSwitch) {
+        noRoomAirSwitch.addEventListener('click', () => {
+            if (!noRoomAirModeCheckbox().disabled) {
+                noRoomAirModeCheckbox().click(); // チェックボックスのクリックイベントを発火
+            }
+        });
+    }
 
     fio2ModeCheckbox().addEventListener('change', () => {
         fio2Mode = handleFio2ModeToggle(clearAll);

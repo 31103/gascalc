@@ -28,7 +28,7 @@ const noRoomAirModeCheckboxElement = getElementById<HTMLInputElement>('noRoomAir
 const addEntryBtnElement = getElementById<HTMLButtonElement>('addEntryBtn');
 const clearAllBtnElement = getElementById<HTMLButtonElement>('clearAllBtn');
 const settingsBtnElement = getElementById<HTMLButtonElement>('settingsBtn');
-const settingsCloseBtnElement = getElementById<HTMLButtonElement>('settingsCloseBtn');
+// const settingsCloseBtnElement = getElementById<HTMLButtonElement>('settingsCloseBtn'); // 削除
 const settingsCloseBtn2Element = getElementById<HTMLButtonElement>('settingsCloseBtn2');
 
 // --- Exported DOM Element Accessors ---
@@ -48,7 +48,7 @@ export const noRoomAirModeCheckbox = () => noRoomAirModeCheckboxElement;
 export const addEntryBtn = () => addEntryBtnElement;
 export const clearAllBtn = () => clearAllBtnElement;
 export const settingsBtn = () => settingsBtnElement;
-export const settingsCloseBtn = () => settingsCloseBtnElement;
+// export const settingsCloseBtn = () => settingsCloseBtnElement; // 削除
 export const settingsCloseBtn2 = () => settingsCloseBtn2Element;
 
 // --- UI Update Functions ---
@@ -78,10 +78,11 @@ export function updateUI(
         entriesData.forEach((entry, index) => {
             const li = document.createElement('li');
             li.className = 'md-list-item md-card p-3 mb-2';
+            // ボタンが常に右側に配置されるように修正
             li.innerHTML = `
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-2">
-                    <span class="md-body-large">${formatDate(entry.dateTime)} ${entry.flow}L/min${fio2Mode ? ` FiO2:${entry.fio2}%` : ''}</span>
-                    <div class="flex gap-2">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <span class="md-body-large flex-grow">${formatDate(entry.dateTime)} ${entry.flow}L/min${fio2Mode ? ` FiO2:${entry.fio2}%` : ''}</span>
+                    <div class="flex gap-2 flex-shrink-0">
                         <button class="btn btn-text btn-sm" data-index="${index}" data-action="edit">修正</button>
                         <button class="btn btn-text btn-sm text-[var(--md-error)]" data-index="${index}" data-action="delete">削除</button>
                     </div>
@@ -127,10 +128,11 @@ export function updateUI(
             if (noRoomAirMode && amounts.nitrogen > 0) {
                 usageText += ` / 窒素 ${nitrogenUsageStr}L`;
             }
+            // ボタンが常に右側に配置されるように修正
             li.innerHTML = `
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-2">
-                    <span class="md-body-large">${usageText}</span>
-                    <button class="btn btn-primary btn-sm" data-oxygen="${oxygenUsageStr}" data-nitrogen="${nitrogenUsageStr}" data-action="copy">コピー</button>
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <span class="md-body-large flex-grow">${usageText}</span>
+                    <button class="btn btn-primary btn-sm flex-shrink-0" data-oxygen="${oxygenUsageStr}" data-nitrogen="${nitrogenUsageStr}" data-action="copy">コピー</button>
                 </div>
             `;
             usageUl.appendChild(li);
@@ -173,9 +175,16 @@ export function displayError(message: string): void {
 /**
  * 設定ダイアログの表示/非表示を切り替える
  */
-export function toggleSettings(): void {
+export function toggleSettings(event?: MouseEvent): void {
   const overlay = settingsOverlay(); // Accessor returns cached element
-  overlay.classList.toggle('hidden');
+
+  // イベントが指定され、かつクリックターゲットがオーバーレイ自体である場合のみ閉じる
+  if (event && event.target === overlay) {
+    overlay.classList.add('hidden');
+  } else if (!event) { // イベントが指定されていない場合は単純にトグルする（ボタンクリックなど）
+    overlay.classList.toggle('hidden');
+  }
+  // ダイアログ内のクリックでは何もしない
 }
 
 /**

@@ -87,7 +87,7 @@
         <div class="md-dialog">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="md-dialog-title">設定</h2>
-                <button id="settingsCloseBtn" class="btn-icon">✕</button>
+                <!-- <button id="settingsCloseBtn" class="btn-icon">✕</button> --> <!-- 右上の閉じるボタンを削除 -->
             </div>
             <div class="md-dialog-content space-y-6">
                 <div class="flex items-center justify-between">
@@ -126,45 +126,45 @@
     </div>
 
     <!-- フッター入力エリア -->
-    <footer class="fixed bottom-0 left-0 right-0 bg-[var(--md-surface)] py-4 px-6 shadow-lg border-t border-[var(--md-outline-variant)]">
+    <footer class="fixed bottom-0 left-0 right-0 bg-[var(--md-surface)] py-3 px-4 sm:py-4 sm:px-6 shadow-lg border-t border-[var(--md-outline-variant)]">
         <div class="container mx-auto max-w-3xl">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <div class="flex flex-wrap items-end gap-3 flex-grow">
-                    <div class="input-field-container mb-0 min-w-[120px]">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-3">
+                <div class="flex flex-col sm:flex-row sm:items-end gap-3 w-full sm:w-auto">
+                    <div class="input-field-container mb-0 flex-grow sm:flex-grow-0 sm:w-28">
                         <input type="text" id="dateTime" placeholder=" " class="input-field w-full">
                         <label for="dateTime" class="input-field-label">日付時刻</label>
                         <div class="input-field-helper flex items-center">
                             DDHHMM
                             <span class="md-tooltip-trigger ml-1">
                                 <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[var(--md-surface-variant)] text-[var(--md-on-surface-variant)] text-[10px]">?</span>
-                                <span class="md-tooltip">例: 2日9時7分 → 20907<br>日付省略可 (直近を継承)</span>
+                                <span class="md-tooltip">例: 020907<br>日付省略可</span>
                             </span>
                         </div>
                     </div>
-                    <div class="input-field-container mb-0 min-w-[100px]">
+                    <div class="input-field-container mb-0 flex-grow sm:flex-grow-0 sm:w-28">
                         <input type="text" id="flow" placeholder=" " class="input-field w-full">
                         <label for="flow" class="input-field-label">流量(L/min)</label>
                         <div class="input-field-helper flex items-center">
                             数値
                             <span class="md-tooltip-trigger ml-1">
                                 <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[var(--md-surface-variant)] text-[var(--md-on-surface-variant)] text-[10px]">?</span>
-                                <span class="md-tooltip">例: 酸素1.5L → 1.5</span>
+                                <span class="md-tooltip">例: 1.5</span>
                             </span>
                         </div>
                     </div>
-                    <div class="input-field-container mb-0 min-w-[100px] hidden" id="fio2InputGroup">
+                    <div class="input-field-container mb-0 flex-grow sm:flex-grow-0 sm:w-28 hidden" id="fio2InputGroup">
                         <input type="text" id="fio2Input" placeholder=" " class="input-field w-full">
                         <label for="fio2Input" class="input-field-label">FiO2(%)</label>
                         <div class="input-field-helper flex items-center">
                             21-100
                             <span class="md-tooltip-trigger ml-1">
                                 <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[var(--md-surface-variant)] text-[var(--md-on-surface-variant)] text-[10px]">?</span>
-                                <span class="md-tooltip">酸素濃度 (21-100の整数)</span>
+                                <span class="md-tooltip">21-100の整数</span>
                             </span>
                         </div>
                     </div>
                 </div>
-                <button id="addEntryBtn" class="btn btn-primary flex-shrink-0 shadow-md hover:shadow-lg transition-shadow">
+                <button id="addEntryBtn" class="btn btn-primary w-full sm:w-auto flex-shrink-0 shadow-md hover:shadow-lg transition-shadow mt-2 sm:mt-0">
                     追加
                 </button>
             </div>

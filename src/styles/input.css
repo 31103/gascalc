@@ -205,14 +205,21 @@
     border: 1px solid var(--md-outline);
     border-radius: var(--md-shape-corner-small);
     color: var(--md-on-surface);
+    /* 高さを固定するために、フォーカス時のpaddingを考慮したpaddingを通常時にも設定 */
+    /* (16px - 2.5px*2 + 1px(border-diff)) / 2 = (16 - 5 + 1)/2 = 6px の差分を上下に */
+    /* py-2.5 は 10px。 focus時は pt-16px, pb-8px。差は (16+8) - (10+10) = 4px */
+    /* この差分を吸収するように調整。 box-sizing: border-box が前提 */
+    padding-top: calc(0.625rem + 1px); /* 10px + 1px (border-width difference) */
+    padding-bottom: calc(0.625rem + 1px); /* 10px + 1px */
   }
   
   .input-field:focus {
     @apply outline-none;
     border-color: var(--md-primary);
     border-width: 2px;
-    padding-top: 16px;
-    padding-bottom: 8px;
+    /* フォーカス時のpaddingは、ラベルの移動に合わせて調整 */
+    padding-top: 1rem; /* 16px */
+    padding-bottom: 0.5rem; /* 8px */
   }
   
   .input-field-label {
