@@ -6,7 +6,7 @@
     // Deno スクリプト内で OS を判定して実行する方が望ましいですが、
     // ここでは Windows ユーザーを想定して del を使用します。
     // 必要であれば、クロスプラットフォームな削除コマンド (例: rimraf) を npm 経由で使うことも検討できます。
-    "clean:temp": "cmd /c rmdir /s /q dist\\.temp", // Windows 用
+    "clean:temp": "deno run -A scripts/clean_temp.ts",
     "build": "deno task build:css && deno task build:html && deno task clean:temp", // build:js を削除
     "dev": "deno run -A npm:@tailwindcss/cli -i ./src/styles/input.css -o ./src/styles/output.css --watch"
   },
@@ -29,8 +29,6 @@
   },
   "imports": {
     "@tailwindcss/cli": "npm:@tailwindcss/cli@^4.1.5",
-    "autoprefixer": "npm:autoprefixer@^10.4.21",
-    "postcss": "npm:postcss@^8.5.3",
     "tailwindcss": "npm:tailwindcss@^4.1.5"
   }
   // "imports": {} // deno add npm:... を実行すると自動的に追加される想定

@@ -8,6 +8,12 @@ export interface DailyUsage {
   nitrogen: number;
 }
 
+// --- 定数 ---
+const MS_PER_MINUTE = 1000 * 60;
+const PERCENT_TO_DECIMAL = 0.01;
+const NON_OXYGEN_GAS_RATIO_IN_AIR = 0.79; // 空気中の窒素+アルゴンの割合 (FiO2計算用)
+const DEFAULT_FIO2_IN_AIR = 21; // 空気中の酸素濃度(%)
+
 /**
  * 日付をフォーマットする (例: "5日09時07分")
  * @param date フォーマットする Date オブジェクト
@@ -24,6 +30,64 @@ export function formatDate(date: Date): string {
  */
 export function formatDateForInput(date: Date): string {
   return `${date.getDate()}${date.getHours().toString().padStart(2, '0')}${date.getMinutes().toString().padStart(2, '0')}`;
+}
+
+/**
+ * 特定の期間と設定に基づいてガス使用量を計算する
+ * @param entry 計算対象のエントリ
+ * @param durationMin 計算期間 (分)
+ * @param fio2Mode FiO2モードが有効か
+ * @param noRoomAirMode 室内気不使用モードが有効か
+ * @returns 酸素と窒素の使用量
+ */
+function calculateGasAmountsForPeriod(
+  entry: Entry,
+  durationMin: number,
+  fio2Mode: boolean,
+  noRoomAirMode: boolean,
+): { oxygen: number; nitrogen: number } {
+  let oxygenAmount = 0;
+  let nitrogenAmount = 0;
+
+  if (fio2Mode) {
+    if (noRoomAirMode) {
+      // 室内気不使用モード
+      oxygenAmount = (entry.fio2 * PERCENT_TO_DECIMAL * entry.flow) * durationMin;
+      nitrogenAmount = ((100 - entry.fio2) * PERCENT_TO_DECIMAL * entry.flow) * durationMin;
+    } else {
+      // FiO2モード (室内気使用)
+      // FiO2が空気中の酸素濃度(21%)を超える場合のみ追加酸素を計算
+      if (entry.fio2 > DEFAULT_FIO2_IN_AIR) {
+        oxygenAmount = ((entry.fio2 - DEFAULT_FIO2_IN_AIR) * PERCENT_TO_DECIMAL / NON_OXYGEN_GAS_RATIO_IN_AIR * entry.flow) * durationMin;
+      }
+      // 室内気使用時は窒素は計算しない (消費されるのは追加酸素のみ)
+    }
+  } else {
+    // 定量酸素モード
+    oxygenAmount = entry.flow * durationMin;
+    // 定量酸素モード時は窒素は計算しない
+  }
+  return { oxygen: oxygenAmount, nitrogen: nitrogenAmount };
+}
+
+/**
+ * 計算されたガス使用量を指定された日付の記録に追加する
+ * @param dailyRecord 日ごとの使用量記録
+ * @param date 日付 (日)
+ * @param oxygen 酸素使用量
+ * @param nitrogen 窒素使用量
+ */
+function addUsageToDailyRecord(
+  dailyRecord: Record<number, DailyUsage>,
+  date: number,
+  oxygen: number,
+  nitrogen: number,
+): void {
+  if (!dailyRecord[date]) {
+    dailyRecord[date] = { oxygen: 0, nitrogen: 0 };
+  }
+  dailyRecord[date].oxygen += oxygen;
+  dailyRecord[date].nitrogen += nitrogen;
 }
 
 /**
@@ -45,69 +109,70 @@ export function calculateUsage(
   }
 
   for (let i = 0; i < entries.length; i++) {
-    const entry = entries[i];
+    const currentEntry = entries[i];
     const nextEntry = entries[i + 1];
-    const entryDate = entry.dateTime.getDate();
 
-    // 次のエントリがない場合、その日の終わり (翌日の0時) までを計算期間とする
-    let endTime: Date;
+    // 計算期間の終了時刻を決定
+    // 次のエントリがない場合は、その日の終わり (翌日の0時) まで
+    let periodEndTime: Date;
     if (nextEntry) {
-      endTime = nextEntry.dateTime;
+      periodEndTime = nextEntry.dateTime;
     } else {
-      // 同じ年の同じ月の翌日の0時を取得
-      endTime = new Date(entry.dateTime.getFullYear(), entry.dateTime.getMonth(), entryDate + 1, 0, 0, 0, 0);
+      periodEndTime = new Date(
+        currentEntry.dateTime.getFullYear(),
+        currentEntry.dateTime.getMonth(),
+        currentEntry.dateTime.getDate() + 1, // 翌日
+        0, 0, 0, 0, // 0時0分0秒
+      );
     }
 
-    let remainingTimeMs = endTime.getTime() - entry.dateTime.getTime();
-    let currentDateTime = new Date(entry.dateTime);
+    let remainingTimeInPeriodMs = periodEndTime.getTime() - currentEntry.dateTime.getTime();
+    let loopCurrentDateTime = new Date(currentEntry.dateTime);
 
-    while (remainingTimeMs > 0) {
-      const currentDate = currentDateTime.getDate();
+    // 現在のエントリ区間を日ごとに区切って計算
+    while (remainingTimeInPeriodMs > 0) {
+      const loopCurrentDate = loopCurrentDateTime.getDate();
+
       // 現在の日付の終わり (翌日の0時) を計算
-      const endOfDay = new Date(currentDateTime.getFullYear(), currentDateTime.getMonth(), currentDate + 1, 0, 0, 0, 0);
-      const timeUntilEndOfDayMs = endOfDay.getTime() - currentDateTime.getTime();
+      const endOfDay = new Date(
+        loopCurrentDateTime.getFullYear(),
+        loopCurrentDateTime.getMonth(),
+        loopCurrentDate + 1, // 翌日
+        0, 0, 0, 0, // 0時0分0秒
+      );
 
-      // 計算する時間 (ミリ秒) を決定 (残りの時間と、日の終わりまでの時間の短い方)
-      const timeToCalculateMs = Math.min(remainingTimeMs, timeUntilEndOfDayMs);
-      const timeToCalculateMin = timeToCalculateMs / (1000 * 60); // 分に変換
+      // このループで計算するべき時間 (ミリ秒)
+      // (区間の残り時間 と 日の終わりまでの時間 の短い方)
+      const timeToCalculateMs = Math.min(remainingTimeInPeriodMs, endOfDay.getTime() - loopCurrentDateTime.getTime());
+      const timeToCalculateMin = timeToCalculateMs / MS_PER_MINUTE;
 
-      let oxygenAmount = 0;
-      let nitrogenAmount = 0;
-
-      if (fio2Mode) {
-        if (noRoomAirMode) {
-          // 室内気不使用モード
-          oxygenAmount = (entry.fio2 * 0.01 * entry.flow) * timeToCalculateMin;
-          nitrogenAmount = ((100 - entry.fio2) * 0.01 * entry.flow) * timeToCalculateMin;
-        } else {
-          // FiO2モード (室内気使用)
-          // FiO2が21%の場合は酸素追加なしと見なす
-          if (entry.fio2 > 21) {
-             oxygenAmount = ((entry.fio2 - 21) * 0.01 / 0.79 * entry.flow) * timeToCalculateMin;
-          }
-          // 室内気使用時は窒素は計算しない
-        }
-      } else {
-        // 定量酸素モード
-        oxygenAmount = entry.flow * timeToCalculateMin;
-        // 定量酸素モード時は窒素は計算しない
+      if (timeToCalculateMin <= 0) { // 計算時間が0以下の場合はスキップ
+        break;
       }
 
-      if (!usage[currentDate]) {
-        usage[currentDate] = { oxygen: 0, nitrogen: 0 };
-      }
-      usage[currentDate].oxygen += oxygenAmount;
-      usage[currentDate].nitrogen += nitrogenAmount;
+      const gasAmounts = calculateGasAmountsForPeriod(
+        currentEntry,
+        timeToCalculateMin,
+        fio2Mode,
+        noRoomAirMode,
+      );
 
-      // 時間を進める
-      currentDateTime = new Date(currentDateTime.getTime() + timeToCalculateMs);
-      remainingTimeMs -= timeToCalculateMs;
+      addUsageToDailyRecord(
+        usage,
+        loopCurrentDate,
+        gasAmounts.oxygen,
+        gasAmounts.nitrogen,
+      );
+
+      // 次の計算のために時間を進める
+      loopCurrentDateTime = new Date(loopCurrentDateTime.getTime() + timeToCalculateMs);
+      remainingTimeInPeriodMs -= timeToCalculateMs;
     }
   }
 
   // 結果を小数点以下1桁に丸める
   Object.keys(usage).forEach((dateKey) => {
-    const dateNum = parseInt(dateKey, 10); // オブジェクトのキーは文字列になるため数値に戻す
+    const dateNum = parseInt(dateKey, 10);
     usage[dateNum].oxygen = Math.round(usage[dateNum].oxygen * 10) / 10;
     usage[dateNum].nitrogen = Math.round(usage[dateNum].nitrogen * 10) / 10;
   });

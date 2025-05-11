@@ -1,7 +1,7 @@
 import type { Entry } from "../types/entry.ts";
 import { formatDate, calculateUsage, formatDateForInput } from "./calculation.ts";
 
-// --- DOM Element Getters ---
+// --- DOM Element Getters Helper ---
 
 function getElementById<T extends HTMLElement>(id: string): T {
   const element = document.getElementById(id);
@@ -11,20 +11,38 @@ function getElementById<T extends HTMLElement>(id: string): T {
   return element as T;
 }
 
-export const dateTimeInput = () => getElementById<HTMLInputElement>('dateTime');
-export const flowInput = () => getElementById<HTMLInputElement>('flow');
-export const fio2Input = () => getElementById<HTMLInputElement>('fio2Input');
-export const fio2InputGroup = () => getElementById<HTMLDivElement>('fio2InputGroup');
-export const errorDiv = () => getElementById<HTMLDivElement>('error');
-export const entriesList = () => getElementById<HTMLUListElement>('entries');
-export const usageList = () => getElementById<HTMLUListElement>('usage');
-export const settingsOverlay = () => getElementById<HTMLDivElement>('settingsOverlay');
-export const fio2ModeCheckbox = () => getElementById<HTMLInputElement>('fio2Mode');
-export const noRoomAirModeCheckbox = () => getElementById<HTMLInputElement>('noRoomAirMode');
-export const addEntryBtn = () => getElementById<HTMLButtonElement>('addEntryBtn');
-export const clearAllBtn = () => getElementById<HTMLButtonElement>('clearAllBtn');
-export const settingsBtn = () => getElementById<HTMLButtonElement>('settingsBtn');
-export const settingsCloseBtn = () => getElementById<HTMLButtonElement>('settingsCloseBtn');
+// --- Cached DOM Element References ---
+const dateTimeInputElement = getElementById<HTMLInputElement>('dateTime');
+const flowInputElement = getElementById<HTMLInputElement>('flow');
+const fio2InputElement = getElementById<HTMLInputElement>('fio2Input');
+const fio2InputGroupElement = getElementById<HTMLDivElement>('fio2InputGroup');
+const errorDivElement = getElementById<HTMLDivElement>('error');
+const entriesListElement = getElementById<HTMLUListElement>('entries');
+const usageListElement = getElementById<HTMLUListElement>('usage');
+const settingsOverlayElement = getElementById<HTMLDivElement>('settingsOverlay');
+const fio2ModeCheckboxElement = getElementById<HTMLInputElement>('fio2Mode');
+const noRoomAirModeCheckboxElement = getElementById<HTMLInputElement>('noRoomAirMode');
+const addEntryBtnElement = getElementById<HTMLButtonElement>('addEntryBtn');
+const clearAllBtnElement = getElementById<HTMLButtonElement>('clearAllBtn');
+const settingsBtnElement = getElementById<HTMLButtonElement>('settingsBtn');
+const settingsCloseBtnElement = getElementById<HTMLButtonElement>('settingsCloseBtn');
+
+// --- Exported DOM Element Accessors ---
+export const dateTimeInput = () => dateTimeInputElement;
+export const flowInput = () => flowInputElement;
+export const fio2Input = () => fio2InputElement;
+export const fio2InputGroup = () => fio2InputGroupElement;
+export const errorDiv = () => errorDivElement;
+export const entriesList = () => entriesListElement;
+export const usageList = () => usageListElement;
+export const settingsOverlay = () => settingsOverlayElement;
+export const fio2ModeCheckbox = () => fio2ModeCheckboxElement;
+export const noRoomAirModeCheckbox = () => noRoomAirModeCheckboxElement;
+export const addEntryBtn = () => addEntryBtnElement;
+export const clearAllBtn = () => clearAllBtnElement;
+export const settingsBtn = () => settingsBtnElement;
+export const settingsCloseBtn = () => settingsCloseBtnElement;
+
 
 // --- UI Update Functions ---
 
@@ -45,7 +63,7 @@ export function updateUI(
     deleteEntryCallback: (index: number) => void,
     copyUsageCallback: (oxygen: string, nitrogen: string) => void,
 ): void {
-    const entriesUl = entriesList();
+    const entriesUl = entriesList(); // Accessor returns cached element
     entriesUl.innerHTML = ''; // 一旦クリア
     if (entriesData.length === 0) {
         entriesUl.innerHTML = '<li class="text-center text-gray-500 text-sm py-4">まだ入力がありません</li>';
@@ -56,8 +74,8 @@ export function updateUI(
             li.innerHTML = `
                 <span>${formatDate(entry.dateTime)} ${entry.flow}L/min${fio2Mode ? ` FiO2:${entry.fio2}%` : ''}</span>
                 <div class="flex gap-1">
-                    <button class="px-2 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500 text-xs" data-index="${index}" data-action="edit">修正</button>
-                    <button class="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs" data-index="${index}" data-action="delete">削除</button>
+                    <button class="btn btn-warning btn-sm" data-index="${index}" data-action="edit">修正</button>
+                    <button class="btn btn-danger btn-sm" data-index="${index}" data-action="delete">削除</button>
                 </div>
             `;
             entriesUl.appendChild(li);
@@ -80,31 +98,30 @@ export function updateUI(
 
 
     const usageData = calculateUsage(entriesData, fio2Mode, noRoomAirMode);
-    const usageUl = usageList();
+    const usageUl = usageList(); // Accessor returns cached element
     usageUl.innerHTML = ''; // 一旦クリア
     const sortedDates = Object.keys(usageData).map(Number).sort((a, b) => a - b);
 
     if (sortedDates.length === 0 && entriesData.length > 0) {
-         usageUl.innerHTML = '<li class="text-center text-gray-500 text-sm py-4">計算中です...</li>'; // Or handle appropriately
+         usageUl.innerHTML = '<li class="text-center text-gray-500 text-sm py-4">計算中です...</li>';
     } else if (sortedDates.length === 0) {
          usageUl.innerHTML = '<li class="text-center text-gray-500 text-sm py-4">入力後に計算結果が表示されます</li>';
     } else {
         sortedDates.forEach(date => {
             const amounts = usageData[date];
-            // 整数なら小数点以下を表示しない、そうでなければ小数点以下1桁まで表示
             const oxygenUsageStr = amounts.oxygen % 1 === 0 ? String(amounts.oxygen) : amounts.oxygen.toFixed(1);
             const nitrogenUsageStr = amounts.nitrogen % 1 === 0 ? String(amounts.nitrogen) : amounts.nitrogen.toFixed(1);
 
             const li = document.createElement('li');
             li.className = 'flex justify-between items-center p-2 bg-white rounded border border-gray-200 text-sm';
             let usageText = `${date}日: 酸素 ${oxygenUsageStr}L`;
-            if (noRoomAirMode && amounts.nitrogen > 0) { // 窒素使用量がある場合のみ表示
+            if (noRoomAirMode && amounts.nitrogen > 0) {
                 usageText += ` / 窒素 ${nitrogenUsageStr}L`;
             }
             li.innerHTML = `
                 <span>${usageText}</span>
                 <div class="flex gap-1">
-                    <button class="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs" data-oxygen="${oxygenUsageStr}" data-nitrogen="${nitrogenUsageStr}" data-action="copy">コピー</button>
+                    <button class="btn btn-primary btn-sm" data-oxygen="${oxygenUsageStr}" data-nitrogen="${nitrogenUsageStr}" data-action="copy">コピー</button>
                 </div>
             `;
             usageUl.appendChild(li);
@@ -125,16 +142,16 @@ export function updateUI(
  * @param message 表示するメッセージ、または空文字列でクリア
  */
 export function displayError(message: string): void {
-  errorDiv().textContent = message;
+  errorDiv().textContent = message; // Accessor returns cached element
 }
 
 /**
  * 設定モーダルの表示/非表示を切り替える
  */
 export function toggleSettings(): void {
-  const overlay = settingsOverlay();
+  const overlay = settingsOverlay(); // Accessor returns cached element
   overlay.classList.toggle('hidden');
-  overlay.classList.toggle('flex'); // flex を使って中央揃え
+  overlay.classList.toggle('flex');
 }
 
 /**
@@ -142,17 +159,16 @@ export function toggleSettings(): void {
  * @param clearAllCallback 全クリア処理のコールバック
  */
 export function handleFio2ModeToggle(clearAllCallback: () => void): boolean {
-  const isChecked = fio2ModeCheckbox().checked;
-  fio2InputGroup().style.display = isChecked ? 'block' : 'none'; // blockに変更
-  noRoomAirModeCheckbox().disabled = !isChecked;
+  const isChecked = fio2ModeCheckbox().checked; // Accessor returns cached element
+  fio2InputGroup().style.display = isChecked ? 'block' : 'none'; // Accessor returns cached element
+  noRoomAirModeCheckbox().disabled = !isChecked; // Accessor returns cached element
 
-  // FiO2モードが無効になったら、室内気不使用モードも強制的に無効化
   if (!isChecked) {
-    noRoomAirModeCheckbox().checked = false;
+    noRoomAirModeCheckbox().checked = false; // Accessor returns cached element
   }
 
-  clearAllCallback(); // モード変更時はデータをクリア
-  return isChecked; // 新しいモードの状態を返す
+  clearAllCallback();
+  return isChecked;
 }
 
 /**
@@ -160,20 +176,20 @@ export function handleFio2ModeToggle(clearAllCallback: () => void): boolean {
  * @param clearAllCallback 全クリア処理のコールバック
  */
 export function handleNoRoomAirModeToggle(clearAllCallback: () => void): boolean {
-  const isChecked = noRoomAirModeCheckbox().checked;
-  clearAllCallback(); // モード変更時はデータをクリア
-  return isChecked; // 新しいモードの状態を返す
+  const isChecked = noRoomAirModeCheckbox().checked; // Accessor returns cached element
+  clearAllCallback();
+  return isChecked;
 }
 
 /**
  * 入力フィールドをクリアする
  */
 export function clearInputFields(): void {
-    dateTimeInput().value = '';
-    flowInput().value = '';
-    fio2Input().value = ''; // FiO2入力もクリア
-    displayError(''); // エラーメッセージもクリア
-    dateTimeInput().focus(); // 日付時刻入力にフォーカスを戻す
+    dateTimeInput().value = ''; // Accessor returns cached element
+    flowInput().value = ''; // Accessor returns cached element
+    fio2Input().value = ''; // Accessor returns cached element
+    displayError('');
+    dateTimeInput().focus(); // Accessor returns cached element
 }
 
 /**
@@ -182,10 +198,10 @@ export function clearInputFields(): void {
  * @param fio2Mode 現在のFiO2モード
  */
 export function populateInputFieldsForEdit(entry: Entry, fio2Mode: boolean): void {
-    dateTimeInput().value = formatDateForInput(entry.dateTime);
-    flowInput().value = String(entry.flow);
+    dateTimeInput().value = formatDateForInput(entry.dateTime); // Accessor returns cached element
+    flowInput().value = String(entry.flow); // Accessor returns cached element
     if (fio2Mode) {
-        fio2Input().value = String(entry.fio2);
+        fio2Input().value = String(entry.fio2); // Accessor returns cached element
     }
 }
 
@@ -197,12 +213,12 @@ export function populateInputFieldsForEdit(entry: Entry, fio2Mode: boolean): voi
  */
 export function copyUsageToClipboard(oxygenUsage: string, nitrogenUsage: string, noRoomAirMode: boolean): void {
     let text = `402400+552010/${oxygenUsage}*1`;
-    // 窒素使用量があり、室内気不使用モードが有効な場合のみ窒素行を追加
     if (noRoomAirMode && parseFloat(nitrogenUsage) > 0) {
         text += `\n402400+552010/${nitrogenUsage}*1`;
     }
     navigator.clipboard.writeText(text)
         .then(() => {
+            // コピー成功時のフィードバックは任意
         })
         .catch(err => {
             console.error('コピーに失敗しました: ', err);
