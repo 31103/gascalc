@@ -1,0 +1,33 @@
+name: Deno CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x # Use a specific version like v1.40.0 or let it pick latest v1
+      - name: Lint
+        run: deno lint
+      - name: Format Check
+        run: deno fmt --check
+      - name: Test
+        run: deno test --allow-read
+      - name: Build
+        run: deno task build --allow-read --allow-write --allow-env --allow-run --allow-net
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gascalc-page
+          path: dist/gascalc.html
+
+    # Further steps for linting, testing, building will be added here
