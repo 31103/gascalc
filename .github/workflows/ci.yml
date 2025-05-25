@@ -15,7 +15,7 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v1
         with:
-          deno-version: v1.x # Use a specific version like v1.40.0 or let it pick latest v1
+          deno-version: v2.x # Use latest v2.x
       - name: Lint
         run: deno lint
       - name: Format Check
