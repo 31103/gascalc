@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "酸素・窒素ガス使用量計算ツール",
   "license": "MIT",
+  "engines": {
+    "node": ">=24"
+  },
   "type": "module",
   "scripts": {
     "build:css": "npx @tailwindcss/cli -i ./src/styles/input.css -o ./dist/.temp/styles.css --minify",
