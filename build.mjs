@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile, stat } from "node:fs/promises";
+import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import esbuild from "esbuild";
 
 const SRC_DIR = "src";
@@ -65,7 +65,9 @@ async function build() {
       await stat(iconFontFilePath);
     } catch (e) {
       if (e.code === "ENOENT") {
-        console.warn(`Icon font file not found at ${iconFontFilePath}. Icons might not be displayed.`);
+        console.warn(
+          `Icon font file not found at ${iconFontFilePath}. Icons might not be displayed.`,
+        );
       } else {
         throw e;
       }
@@ -77,7 +79,7 @@ async function build() {
     // Replace font file path in CSS with data URI
     iconFontCssContent = iconFontCssContent.replace(
       /url\(\s*['"]?(\.\/MaterialSymbolsOutlined\.ttf)['"]?\s*\)/g,
-      `url(${fontDataUri})`
+      `url(${fontDataUri})`,
     );
     console.log("Files and font data read successfully.");
 
@@ -85,24 +87,33 @@ async function build() {
     console.log("Injecting CSS and JS into HTML...");
     let outputHtml = htmlTemplate.replace(
       /<!-- TailwindCSS はビルド時にここにインライン展開されます -->/,
-      `<style>\n${tailwindCssContent}\n</style>`
+      `<style>\n${tailwindCssContent}\n</style>`,
     );
 
     // Inject icon font CSS (remove existing link first, then inject)
-    outputHtml = outputHtml.replace(/<link href="\.\/assets\/fonts\/material-symbols\.css" rel="stylesheet">\n?/g, '');
+    outputHtml = outputHtml.replace(
+      /<link href="\.\/assets\/fonts\/material-symbols\.css" rel="stylesheet">\n?/g,
+      "",
+    );
     outputHtml = outputHtml.replace(
       /<\/head>/,
-      `<style>\n${iconFontCssContent}\n</style>\n</head>`
+      `<style>\n${iconFontCssContent}\n</style>\n</head>`,
     );
 
     outputHtml = outputHtml.replace(
       /<!-- JavaScript はビルド時にここにインライン展開されます -->/,
-      `<script type="module">\n${jsContent}\n</script>`
+      `<script type="module">\n${jsContent}\n</script>`,
     );
 
     // Remove development-only links/scripts
-    outputHtml = outputHtml.replace(/<!-- <link rel="stylesheet" href="styles\/output.css"> -->.*?\n?/g, '');
-    outputHtml = outputHtml.replace(/<!-- <script type="module" src="main.ts"><\/script> -->.*?\n?/g, '');
+    outputHtml = outputHtml.replace(
+      /<!-- <link rel="stylesheet" href="styles\/output.css"> -->.*?\n?/g,
+      "",
+    );
+    outputHtml = outputHtml.replace(
+      /<!-- <script type="module" src="main.ts"><\/script> -->.*?\n?/g,
+      "",
+    );
 
     // --- Add License Information as HTML comment ---
     const licenseComment = `
@@ -121,7 +132,6 @@ Google Fonts - Apache License, version 2.0: https://www.apache.org/licenses/LICE
     console.log("Final HTML written successfully.");
 
     console.log("Build process finished successfully!");
-
   } catch (error) {
     console.error("Build failed:", error);
     process.exit(1);

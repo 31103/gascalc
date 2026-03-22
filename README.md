@@ -7,6 +7,8 @@ Material Design 3
 に準拠したモダンなUI/UXに刷新され、主要な操作はアイコンボタンで行えるようになりました。
 ビルド成果物は単一のHTMLファイルとして提供され、ローカル環境でインターネット接続なしに動作します。
 
+**デモ**: https://31103.github.io/gascalc/gascalc.html
+
 ## 使用方法
 
 1. フッターの「日付時刻」欄に、日付と時刻を `DDHHMM` の形式で入力します。
@@ -58,16 +60,28 @@ Material Design 3
 ## 技術スタック
 
 - 言語: TypeScript
-- ランタイム: Node.js
+- ランタイム: Node.js 24（LTS）
 - CSSフレームワーク: TailwindCSS v4
 - アイコン: Material Symbols (ローカルホスティング)
 - バンドラ: esbuild
 - テスト: Vitest
+- Lint / Format: Biome
+- コミット検証: commitlint + husky
+- CI/CD: GitHub Actions
+- リリース管理: release-please
 
 ## ディレクトリ構造
 
 ```
 gascalc/
+├── .github/
+│   └── workflows/
+│       ├── ci.yml             (テスト・ビルド検証)
+│       ├── deploy.yml         (GitHub Pages デプロイ)
+│       ├── release.yml        (Release への HTML 添付)
+│       └── release-please.yml (自動バージョン管理)
+├── .husky/
+│   └── commit-msg             (コミットメッセージ検証フック)
 ├── dist/
 │   └── gascalc.html  (ビルド成果物)
 ├── scripts/
@@ -89,7 +103,10 @@ gascalc/
 ├── tests/
 │   └── calculation.test.ts (計算ロジックのテスト)
 ├── .gitignore
+├── biome.json             (Biome 設定)
 ├── build.mjs              (ビルドスクリプト)
+├── commitlint.config.js   (commitlint 設定)
+├── CONTRIBUTING.md        (開発ガイドライン)
 ├── package.json
 ├── tsconfig.json
 ├── vitest.config.ts
@@ -127,10 +144,31 @@ npm test          # テスト実行
 npm run test:watch # ウォッチモード
 ```
 
+## Lint / Format
+
+```bash
+npm run lint      # Lint チェック
+npm run lint:fix  # Lint 自動修正
+npm run format    # Format
+```
+
 ## 実行方法
 
 1. プロジェクトをビルドします: `npm run build`
 2. 生成された単一ファイル `dist/gascalc.html` をブラウザで開きます。
+
+## CI/CD
+
+GitHub Actions による自動化：
+
+- **CI**: push / PR 時に lint → test → build を実行
+- **Deploy**: main への push 時に GitHub Pages へ自動デプロイ
+- **Release**: Release 作成時に HTML を Release Assets に添付
+- **release-please**: Conventional Commits ベースの自動バージョン管理
+
+## コントリビュート
+
+詳しくは [CONTRIBUTING.md](./CONTRIBUTING.md) を参照してください。
 
 ## ライセンス
 

@@ -20,7 +20,7 @@ const DEFAULT_FIO2_IN_AIR = 21; // 空気中の酸素濃度(%)
  * @returns フォーマットされた文字列
  */
 export function formatDate(date: Date): string {
-  return `${date.getDate()}日${date.getHours().toString().padStart(2, '0')}時${date.getMinutes().toString().padStart(2, '0')}分`;
+  return `${date.getDate()}日${date.getHours().toString().padStart(2, "0")}時${date.getMinutes().toString().padStart(2, "0")}分`;
 }
 
 /**
@@ -29,7 +29,7 @@ export function formatDate(date: Date): string {
  * @returns フォーマットされた文字列
  */
 export function formatDateForInput(date: Date): string {
-  return `${date.getDate()}${date.getHours().toString().padStart(2, '0')}${date.getMinutes().toString().padStart(2, '0')}`;
+  return `${date.getDate()}${date.getHours().toString().padStart(2, "0")}${date.getMinutes().toString().padStart(2, "0")}`;
 }
 
 /**
@@ -52,13 +52,18 @@ function calculateGasAmountsForPeriod(
   if (fio2Mode) {
     if (noRoomAirMode) {
       // 室内気不使用モード
-      oxygenAmount = (entry.fio2 * PERCENT_TO_DECIMAL * entry.flow) * durationMin;
-      nitrogenAmount = ((100 - entry.fio2) * PERCENT_TO_DECIMAL * entry.flow) * durationMin;
+      oxygenAmount = entry.fio2 * PERCENT_TO_DECIMAL * entry.flow * durationMin;
+      nitrogenAmount =
+        (100 - entry.fio2) * PERCENT_TO_DECIMAL * entry.flow * durationMin;
     } else {
       // FiO2モード (室内気使用)
       // FiO2が空気中の酸素濃度(21%)を超える場合のみ追加酸素を計算
       if (entry.fio2 > DEFAULT_FIO2_IN_AIR) {
-        oxygenAmount = ((entry.fio2 - DEFAULT_FIO2_IN_AIR) * PERCENT_TO_DECIMAL / NON_OXYGEN_GAS_RATIO_IN_AIR * entry.flow) * durationMin;
+        oxygenAmount =
+          (((entry.fio2 - DEFAULT_FIO2_IN_AIR) * PERCENT_TO_DECIMAL) /
+            NON_OXYGEN_GAS_RATIO_IN_AIR) *
+          entry.flow *
+          durationMin;
       }
       // 室内気使用時は窒素は計算しない (消費されるのは追加酸素のみ)
     }
@@ -122,11 +127,15 @@ export function calculateUsage(
         currentEntry.dateTime.getFullYear(),
         currentEntry.dateTime.getMonth(),
         currentEntry.dateTime.getDate() + 1, // 翌日
-        0, 0, 0, 0, // 0時0分0秒
+        0,
+        0,
+        0,
+        0, // 0時0分0秒
       );
     }
 
-    let remainingTimeInPeriodMs = periodEndTime.getTime() - currentEntry.dateTime.getTime();
+    let remainingTimeInPeriodMs =
+      periodEndTime.getTime() - currentEntry.dateTime.getTime();
     let loopCurrentDateTime = new Date(currentEntry.dateTime);
 
     // 現在のエントリ区間を日ごとに区切って計算
@@ -138,15 +147,22 @@ export function calculateUsage(
         loopCurrentDateTime.getFullYear(),
         loopCurrentDateTime.getMonth(),
         loopCurrentDate + 1, // 翌日
-        0, 0, 0, 0, // 0時0分0秒
+        0,
+        0,
+        0,
+        0, // 0時0分0秒
       );
 
       // このループで計算するべき時間 (ミリ秒)
       // (区間の残り時間 と 日の終わりまでの時間 の短い方)
-      const timeToCalculateMs = Math.min(remainingTimeInPeriodMs, endOfDay.getTime() - loopCurrentDateTime.getTime());
+      const timeToCalculateMs = Math.min(
+        remainingTimeInPeriodMs,
+        endOfDay.getTime() - loopCurrentDateTime.getTime(),
+      );
       const timeToCalculateMin = timeToCalculateMs / MS_PER_MINUTE;
 
-      if (timeToCalculateMin <= 0) { // 計算時間が0以下の場合はスキップ
+      if (timeToCalculateMin <= 0) {
+        // 計算時間が0以下の場合はスキップ
         break;
       }
 
@@ -165,7 +181,9 @@ export function calculateUsage(
       );
 
       // 次の計算のために時間を進める
-      loopCurrentDateTime = new Date(loopCurrentDateTime.getTime() + timeToCalculateMs);
+      loopCurrentDateTime = new Date(
+        loopCurrentDateTime.getTime() + timeToCalculateMs,
+      );
       remainingTimeInPeriodMs -= timeToCalculateMs;
     }
   }

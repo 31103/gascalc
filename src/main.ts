@@ -1,26 +1,26 @@
 import type { Entry } from "./types/entry.ts";
 import {
-  updateUI,
-  displayError,
-  toggleSettings,
-  handleFio2ModeToggle,
-  handleNoRoomAirModeToggle,
-  clearInputFields,
-  populateInputFieldsForEdit,
-  copyUsageToClipboard,
-  dateTimeInput,
-  flowInput,
-  fio2Input,
-  fio2ModeCheckbox,
-  noRoomAirModeCheckbox,
   addEntryBtn,
   clearAllBtn,
+  clearInputFields,
+  copyUsageToClipboard,
+  dateTimeInput,
+  displayError,
+  fio2Input,
+  fio2InputGroup,
+  fio2ModeCheckbox,
+  flowInput,
+  handleFio2ModeToggle,
+  handleNoRoomAirModeToggle,
+  noRoomAirModeCheckbox,
+  populateInputFieldsForEdit,
   settingsBtn,
   // settingsCloseBtn, // 削除
   settingsCloseBtn2,
-  snackbarAction,
-  fio2InputGroup,
   settingsOverlay, // settingsOverlay をインポートに追加
+  snackbarAction,
+  toggleSettings,
+  updateUI,
 } from "./utils/dom.ts";
 
 // --- Application State ---
@@ -39,32 +39,44 @@ let noRoomAirMode = false;
  * @returns パースされた Date オブジェクト、または無効な場合は null
  */
 function parseDateTime(input: string): Date | null {
-    let day: number, hour: number, minute: number;
-    const now = new Date();
+  let day: number, hour: number, minute: number;
+  const now = new Date();
 
-    if (input.length <= 4) { // HHMM 形式 (日付省略)
-        input = input.padStart(4, '0');
-        if (!lastDate) { // 初回入力 (lastDate が null) の場合、日付を1日に設定
-            day = 1;
-        } else { // 2回目以降は前回の日付を使用
-            day = lastDate.getDate();
-        }
-        hour = parseInt(input.slice(0, 2), 10);
-        minute = parseInt(input.slice(2, 4), 10);
-    } else { // DDHHMM 形式
-        input = input.padStart(6, '0');
-        day = parseInt(input.slice(0, 2), 10);
-        hour = parseInt(input.slice(2, 4), 10);
-        minute = parseInt(input.slice(4, 6), 10);
+  if (input.length <= 4) {
+    // HHMM 形式 (日付省略)
+    input = input.padStart(4, "0");
+    if (!lastDate) {
+      // 初回入力 (lastDate が null) の場合、日付を1日に設定
+      day = 1;
+    } else {
+      // 2回目以降は前回の日付を使用
+      day = lastDate.getDate();
     }
+    hour = parseInt(input.slice(0, 2), 10);
+    minute = parseInt(input.slice(2, 4), 10);
+  } else {
+    // DDHHMM 形式
+    input = input.padStart(6, "0");
+    day = parseInt(input.slice(0, 2), 10);
+    hour = parseInt(input.slice(2, 4), 10);
+    minute = parseInt(input.slice(4, 6), 10);
+  }
 
-    if (isNaN(day) || isNaN(hour) || isNaN(minute) || day < 1 || day > 31 || hour >= 24 || minute >= 60) {
-        // displayError は呼び出し元で行うため、ここでは null を返すだけ
-        return null;
-    }
+  if (
+    Number.isNaN(day) ||
+    Number.isNaN(hour) ||
+    Number.isNaN(minute) ||
+    day < 1 ||
+    day > 31 ||
+    hour >= 24 ||
+    minute >= 60
+  ) {
+    // displayError は呼び出し元で行うため、ここでは null を返すだけ
+    return null;
+  }
 
-    // 年と月は現在のものを使用。月またぎの厳密な処理は calculateUsage で考慮される想定。
-    return new Date(now.getFullYear(), now.getMonth(), day, hour, minute);
+  // 年と月は現在のものを使用。月またぎの厳密な処理は calculateUsage で考慮される想定。
+  return new Date(now.getFullYear(), now.getMonth(), day, hour, minute);
 }
 
 /**
@@ -77,66 +89,79 @@ function parseDateTime(input: string): Date | null {
  * @returns 有効な場合はEntryオブジェクト、無効な場合はnull
  */
 function validateAndParseEntry(
-    dateTimeStr: string,
-    flowStr: string,
-    fio2Str: string,
-    currentFio2Mode: boolean
+  dateTimeStr: string,
+  flowStr: string,
+  fio2Str: string,
+  currentFio2Mode: boolean,
 ): Entry | null {
-    if (!dateTimeStr || !flowStr) {
-        displayError('日付時刻と流量を入力してください。');
-        return null;
-    }
+  if (!dateTimeStr || !flowStr) {
+    displayError("日付時刻と流量を入力してください。");
+    return null;
+  }
 
-    const parsedDateTime = parseDateTime(dateTimeStr);
-    if (!parsedDateTime) {
-        displayError('無効な日付時刻形式です。DDHHMM または HHMM で入力してください。');
-        return null;
-    }
+  const parsedDateTime = parseDateTime(dateTimeStr);
+  if (!parsedDateTime) {
+    displayError(
+      "無効な日付時刻形式です。DDHHMM または HHMM で入力してください。",
+    );
+    return null;
+  }
 
-    const parsedFlow = parseFloat(flowStr);
-    if (isNaN(parsedFlow) || parsedFlow < 0) {
-        displayError('無効な流量です。0以上の数値を入力してください。');
-        return null;
-    }
+  const parsedFlow = parseFloat(flowStr);
+  if (Number.isNaN(parsedFlow) || parsedFlow < 0) {
+    displayError("無効な流量です。0以上の数値を入力してください。");
+    return null;
+  }
 
-    let parsedFio2 = 21; // デフォルト値
-    if (currentFio2Mode) {
-        if (!fio2Str) {
-             displayError('FiO2モードが有効です。FiO2値を入力してください。');
-             return null;
-        }
-        parsedFio2 = parseInt(fio2Str, 10);
-        if (isNaN(parsedFio2) || parsedFio2 < 21 || parsedFio2 > 100) {
-            displayError('無効なFiO2です。21以上100以下の整数を入力してください。');
-            return null;
-        }
+  let parsedFio2 = 21; // デフォルト値
+  if (currentFio2Mode) {
+    if (!fio2Str) {
+      displayError("FiO2モードが有効です。FiO2値を入力してください。");
+      return null;
     }
-    displayError(''); // エラーをクリア
-    return { dateTime: parsedDateTime, flow: parsedFlow, fio2: parsedFio2 };
+    parsedFio2 = parseInt(fio2Str, 10);
+    if (Number.isNaN(parsedFio2) || parsedFio2 < 21 || parsedFio2 > 100) {
+      displayError("無効なFiO2です。21以上100以下の整数を入力してください。");
+      return null;
+    }
+  }
+  displayError(""); // エラーをクリア
+  return { dateTime: parsedDateTime, flow: parsedFlow, fio2: parsedFio2 };
 }
-
 
 /**
  * 新しいエントリを追加する
  */
 function addEntry(): void {
-    const dateTimeValue = dateTimeInput().value.trim();
-    const flowValue = flowInput().value.trim();
-    const fio2Value = fio2Input().value.trim();
+  const dateTimeValue = dateTimeInput().value.trim();
+  const flowValue = flowInput().value.trim();
+  const fio2Value = fio2Input().value.trim();
 
-    const newEntry = validateAndParseEntry(dateTimeValue, flowValue, fio2Value, fio2Mode);
+  const newEntry = validateAndParseEntry(
+    dateTimeValue,
+    flowValue,
+    fio2Value,
+    fio2Mode,
+  );
 
-    if (newEntry) {
-        entries.push(newEntry);
-        entries.sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime());
+  if (newEntry) {
+    entries.push(newEntry);
+    entries.sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime());
 
-        if (entries.length > 0) {
-            lastDate = entries[entries.length - 1].dateTime;
-        }
-
-        updateUI(entries, fio2Mode, noRoomAirMode, handleEditEntry, handleDeleteEntry, handleCopyUsage);
-        clearInputFields();
+    if (entries.length > 0) {
+      lastDate = entries[entries.length - 1].dateTime;
     }
+
+    updateUI(
+      entries,
+      fio2Mode,
+      noRoomAirMode,
+      handleEditEntry,
+      handleDeleteEntry,
+      handleCopyUsage,
+    );
+    clearInputFields();
+  }
 }
 
 /**
@@ -144,11 +169,18 @@ function addEntry(): void {
  * @param index 削除するエントリのインデックス
  */
 function handleDeleteEntry(index: number): void {
-    if (index >= 0 && index < entries.length) {
-        entries.splice(index, 1);
-        lastDate = entries.length > 0 ? entries[entries.length - 1].dateTime : null;
-        updateUI(entries, fio2Mode, noRoomAirMode, handleEditEntry, handleDeleteEntry, handleCopyUsage);
-    }
+  if (index >= 0 && index < entries.length) {
+    entries.splice(index, 1);
+    lastDate = entries.length > 0 ? entries[entries.length - 1].dateTime : null;
+    updateUI(
+      entries,
+      fio2Mode,
+      noRoomAirMode,
+      handleEditEntry,
+      handleDeleteEntry,
+      handleCopyUsage,
+    );
+  }
 }
 
 /**
@@ -156,101 +188,136 @@ function handleDeleteEntry(index: number): void {
  * @param index 編集するエントリのインデックス
  */
 function handleEditEntry(index: number): void {
-    if (index >= 0 && index < entries.length) {
-        const entryToEdit = entries[index];
-        populateInputFieldsForEdit(entryToEdit, fio2Mode);
-        entries.splice(index, 1);
-        lastDate = entries.length > 0 ? entries[entries.length - 1].dateTime : null;
-        updateUI(entries, fio2Mode, noRoomAirMode, handleEditEntry, handleDeleteEntry, handleCopyUsage);
-        dateTimeInput().focus();
-    }
+  if (index >= 0 && index < entries.length) {
+    const entryToEdit = entries[index];
+    populateInputFieldsForEdit(entryToEdit, fio2Mode);
+    entries.splice(index, 1);
+    lastDate = entries.length > 0 ? entries[entries.length - 1].dateTime : null;
+    updateUI(
+      entries,
+      fio2Mode,
+      noRoomAirMode,
+      handleEditEntry,
+      handleDeleteEntry,
+      handleCopyUsage,
+    );
+    dateTimeInput().focus();
+  }
 }
 
 /**
  * 全ての入力と計算結果をクリアする
  */
 function clearAll(): void {
-    entries = [];
-    lastDate = null;
-    updateUI(entries, fio2Mode, noRoomAirMode, handleEditEntry, handleDeleteEntry, handleCopyUsage);
-    clearInputFields();
+  entries = [];
+  lastDate = null;
+  updateUI(
+    entries,
+    fio2Mode,
+    noRoomAirMode,
+    handleEditEntry,
+    handleDeleteEntry,
+    handleCopyUsage,
+  );
+  clearInputFields();
 }
 
 /**
  * コピーボタンのコールバック
  */
 function handleCopyUsage(oxygen: string, nitrogen: string): void {
-    copyUsageToClipboard(oxygen, nitrogen, noRoomAirMode);
+  copyUsageToClipboard(oxygen, nitrogen, noRoomAirMode);
 }
-
 
 // --- Event Listeners Setup ---
 
 function initialize(): void {
-    updateUI(entries, fio2Mode, noRoomAirMode, handleEditEntry, handleDeleteEntry, handleCopyUsage);
+  updateUI(
+    entries,
+    fio2Mode,
+    noRoomAirMode,
+    handleEditEntry,
+    handleDeleteEntry,
+    handleCopyUsage,
+  );
 
-    addEntryBtn().addEventListener('click', addEntry);
-    clearAllBtn().addEventListener('click', clearAll);
-    settingsBtn().addEventListener('click', () => toggleSettings()); // イベントオブジェクトを渡さない
-    settingsCloseBtn2().addEventListener('click', () => toggleSettings()); // イベントオブジェクトを渡さない
-    settingsOverlay().addEventListener('click', (event) => toggleSettings(event)); // オーバーレイクリック
-    snackbarAction().addEventListener('click', () => displayError(''));
+  addEntryBtn().addEventListener("click", addEntry);
+  clearAllBtn().addEventListener("click", clearAll);
+  settingsBtn().addEventListener("click", () => toggleSettings()); // イベントオブジェクトを渡さない
+  settingsCloseBtn2().addEventListener("click", () => toggleSettings()); // イベントオブジェクトを渡さない
+  settingsOverlay().addEventListener("click", (event) => toggleSettings(event)); // オーバーレイクリック
+  snackbarAction().addEventListener("click", () => displayError(""));
 
-    // トグルスイッチのクリックイベント
-    const fio2Switch = fio2ModeCheckbox().parentElement?.closest('.md-switch');
-    if (fio2Switch) {
-        fio2Switch.addEventListener('click', () => {
-            fio2ModeCheckbox().click(); // チェックボックスのクリックイベントを発火
-        });
+  // トグルスイッチのクリックイベント
+  const fio2Switch = fio2ModeCheckbox().parentElement?.closest(".md-switch");
+  if (fio2Switch) {
+    fio2Switch.addEventListener("click", () => {
+      fio2ModeCheckbox().click(); // チェックボックスのクリックイベントを発火
+    });
+  }
+
+  const noRoomAirSwitch =
+    noRoomAirModeCheckbox().parentElement?.closest(".md-switch");
+  if (noRoomAirSwitch) {
+    noRoomAirSwitch.addEventListener("click", () => {
+      if (!noRoomAirModeCheckbox().disabled) {
+        noRoomAirModeCheckbox().click(); // チェックボックスのクリックイベントを発火
+      }
+    });
+  }
+
+  fio2ModeCheckbox().addEventListener("change", () => {
+    fio2Mode = handleFio2ModeToggle(clearAll);
+    updateUI(
+      entries,
+      fio2Mode,
+      noRoomAirMode,
+      handleEditEntry,
+      handleDeleteEntry,
+      handleCopyUsage,
+    );
+  });
+  noRoomAirModeCheckbox().addEventListener("change", () => {
+    noRoomAirMode = handleNoRoomAirModeToggle(clearAll);
+    updateUI(
+      entries,
+      fio2Mode,
+      noRoomAirMode,
+      handleEditEntry,
+      handleDeleteEntry,
+      handleCopyUsage,
+    );
+  });
+
+  dateTimeInput().addEventListener("keypress", (e: KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      flowInput().focus();
     }
+  });
 
-    const noRoomAirSwitch = noRoomAirModeCheckbox().parentElement?.closest('.md-switch');
-    if (noRoomAirSwitch) {
-        noRoomAirSwitch.addEventListener('click', () => {
-            if (!noRoomAirModeCheckbox().disabled) {
-                noRoomAirModeCheckbox().click(); // チェックボックスのクリックイベントを発火
-            }
-        });
+  flowInput().addEventListener("keypress", (e: KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (fio2Mode) {
+        fio2Input().focus();
+      } else {
+        addEntry();
+      }
     }
+  });
 
-    fio2ModeCheckbox().addEventListener('change', () => {
-        fio2Mode = handleFio2ModeToggle(clearAll);
-        updateUI(entries, fio2Mode, noRoomAirMode, handleEditEntry, handleDeleteEntry, handleCopyUsage);
-    });
-    noRoomAirModeCheckbox().addEventListener('change', () => {
-        noRoomAirMode = handleNoRoomAirModeToggle(clearAll);
-        updateUI(entries, fio2Mode, noRoomAirMode, handleEditEntry, handleDeleteEntry, handleCopyUsage);
-    });
+  fio2Input().addEventListener("keypress", (e: KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addEntry();
+    }
+  });
 
-    dateTimeInput().addEventListener('keypress', (e: KeyboardEvent) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            flowInput().focus();
-        }
-    });
-
-    flowInput().addEventListener('keypress', (e: KeyboardEvent) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            if (fio2Mode) {
-                fio2Input().focus();
-            } else {
-                addEntry();
-            }
-        }
-    });
-
-    fio2Input().addEventListener('keypress', (e: KeyboardEvent) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            addEntry();
-        }
-    });
-
-    // 初期状態で FiO2 入力欄の表示を制御
-    fio2InputGroup().classList.toggle('hidden', !fio2Mode);
-    noRoomAirModeCheckbox().disabled = !fio2Mode;
+  // 初期状態で FiO2 入力欄の表示を制御
+  fio2InputGroup().classList.toggle("hidden", !fio2Mode);
+  noRoomAirModeCheckbox().disabled = !fio2Mode;
 }
 
 // --- Initialize Application ---
-document.addEventListener('DOMContentLoaded', initialize);
+document.addEventListener("DOMContentLoaded", initialize);
