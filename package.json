@@ -1,6 +1,6 @@
 {
   "name": "gascalc",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "酸素・窒素ガス使用量計算ツール",
   "license": "MIT",
   "type": "module",
@@ -10,15 +10,23 @@
     "clean:temp": "node scripts/clean-temp.mjs",
     "build": "npm run build:css && npm run build:html && npm run clean:temp",
     "dev": "npx @tailwindcss/cli -i ./src/styles/input.css -o ./src/styles/output.css --watch",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write --unsafe .",
+    "format": "biome format --write .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepare": "husky"
   },
   "dependencies": {
     "tailwindcss": "^4.1.6"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.8",
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
     "@tailwindcss/cli": "^4.1.6",
     "esbuild": "^0.24.0",
+    "husky": "^9.1.7",
     "vitest": "^3.1.0"
   }
 }

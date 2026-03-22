@@ -1,6 +1,10 @@
-import { describe, it, expect } from "vitest";
-import { calculateUsage, formatDate, formatDateForInput } from "../src/utils/calculation.ts";
+import { describe, expect, it } from "vitest";
 import type { Entry } from "../src/types/entry.ts";
+import {
+  calculateUsage,
+  formatDate,
+  formatDateForInput,
+} from "../src/utils/calculation.ts";
 
 // Helper to create Date objects easily for tests (assumes same year/month for simplicity)
 const createDate = (day: number, hour: number, minute: number): Date => {
