@@ -7,7 +7,7 @@
   "scripts": {
     "build:css": "npx @tailwindcss/cli -i ./src/styles/input.css -o ./dist/.temp/styles.css --minify",
     "build:html": "node build.mjs",
-    "clean:temp": "node -e \"import('fs/promises').then(f => f.rm('dist/.temp', {recursive:true,force:true}).then(() => console.log('cleaned'))).catch(e => console.error(e))\"",
+    "clean:temp": "node scripts/clean-temp.mjs",
     "build": "npm run build:css && npm run build:html && npm run clean:temp",
     "dev": "npx @tailwindcss/cli -i ./src/styles/input.css -o ./src/styles/output.css --watch",
     "test": "vitest run",

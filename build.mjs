@@ -1,5 +1,4 @@
-import { mkdir, readFile, writeFile, stat, rm } from "node:fs/promises";
-import { execSync } from "node:child_process";
+import { mkdir, readFile, writeFile, stat } from "node:fs/promises";
 import esbuild from "esbuild";
 
 const SRC_DIR = "src";

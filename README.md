@@ -61,10 +61,11 @@ Material Design 3
 ## 技術スタック
 
 - 言語: TypeScript
-- ランタイム/ツールチェーン: Deno
-- CSSフレームワーク: TailwindCSS
+- ランタイム: Node.js
+- CSSフレームワーク: TailwindCSS v4
 - アイコン: Material Symbols (ローカルホスティング)
-- バンドラ: esbuild (Deno経由)
+- バンドラ: esbuild
+- テスト: Vitest
 
 ## ディレクトリ構造
 
@@ -72,17 +73,8 @@ Material Design 3
 gascalc/
 ├── dist/
 │   └── gascalc.html  (ビルド成果物)
-├── docs/
-│   └── refactoring-plan.md
-├── memory-bank/
-│   ├── activeContext.md
-│   ├── productContext.md
-│   ├── progress.md
-│   ├── projectbrief.md
-│   ├── systemPatterns.md
-│   └── techContext.md
 ├── scripts/
-│   └── clean_temp.ts (一時ファイル削除用スクリプト)
+│   └── clean-temp.mjs (一時ファイル削除用スクリプト)
 ├── src/
 │   ├── assets/
 │   │   └── fonts/
@@ -100,19 +92,24 @@ gascalc/
 ├── tests/
 │   └── calculation.test.ts (計算ロジックのテスト)
 ├── .gitignore
-├── build.ts               (ビルドスクリプト)
-├── deno.jsonc             (Deno設定ファイル)
-├── README.md
-└── tailwind.config.js     (TailwindCSS設定ファイル)
+├── build.mjs              (ビルドスクリプト)
+├── package.json
+├── tsconfig.json
+├── vitest.config.ts
+└── README.md
+```
+
+## セットアップ
+
+```bash
+npm install
 ```
 
 ## ビルド方法
 
-以下の Deno タスクを使用します (`deno.jsonc` で定義)。
-
 - **統合ビルド (CSSビルド、JSバンドル、アセットインライン化、単一HTML生成):**
   ```bash
-  deno task build
+  npm run build
   ```
   ビルド成果物は `dist/gascalc.html`
   という単一のHTMLファイルとして出力されます。
@@ -120,15 +117,22 @@ gascalc/
 
 - **開発モード (TailwindCSSのwatch):**
   ```bash
-  deno task dev
+  npm run dev
   ```
   開発中は `src/index.html`
   を直接ブラウザで開いて確認します（この場合、TailwindCSSの変更は
   `src/styles/output.css` に反映されます）。
 
+## テスト
+
+```bash
+npm test          # テスト実行
+npm run test:watch # ウォッチモード
+```
+
 ## 実行方法
 
-1. プロジェクトをビルドします: `deno task build`
+1. プロジェクトをビルドします: `npm run build`
 2. 生成された単一ファイル `dist/gascalc.html` をブラウザで開きます。
 
 ## ライセンス
