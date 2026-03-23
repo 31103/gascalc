@@ -1,6 +1,6 @@
 {
   "name": "gascalc",
-  "version": "1.0.0",
+  "version": "0.2.0",
   "description": "酸素・窒素ガス使用量計算ツール",
   "license": "MIT",
   "engines": {

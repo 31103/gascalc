@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0 (2026-03-22)
+## [0.2.0](https://github.com/31103/gascalc/releases/tag/v0.2.0) (2026-03-22)
 
 
 ### Features
