@@ -146,6 +146,11 @@ export function updateUI(
           ? String(amounts.nitrogen)
           : amounts.nitrogen.toFixed(1);
 
+      let usageText = `<span class="font-bold text-emerald-600">酸素 ${oxygenUsageStr}L</span>`;
+      if (noRoomAirMode && amounts.nitrogen > 0) {
+        usageText += ` <span class="text-slate-400">/</span> <span class="font-bold text-slate-600">窒素 ${nitrogenUsageStr}L</span>`;
+      }
+
       const li = document.createElement("li");
       li.className = "md-list-item list-item-enter";
       li.innerHTML = `
