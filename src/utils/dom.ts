@@ -79,6 +79,7 @@ export function updateUI(
     entriesData.forEach((entry, index) => {
       const li = document.createElement("li");
       li.className = "md-list-item list-item-enter";
+      const dateStr = entry.dateTime.getTime();
       li.innerHTML = `
                 <div class="flex items-center justify-between gap-3">
                     <div class="flex items-center gap-3 flex-grow">
@@ -88,32 +89,35 @@ export function updateUI(
                         <span class="md-body-large font-medium">${formatDate(entry.dateTime)} <span class="text-blue-600 font-bold">${entry.flow}L/min</span>${fio2Mode ? `<span class="text-emerald-600 font-bold"> FiO2:${entry.fio2}%</span>` : ""}</span>
                     </div>
                     <div class="flex gap-2 flex-shrink-0">
-                        <button class="btn-icon btn-sm hover:bg-blue-100 edit-btn" data-index="${index}" title="修正">
-                            <span class="material-symbols-outlined">edit</span>
+                        <button class="btn-icon btn-sm hover:bg-blue-100" id="edit-btn-${dateStr}" title="修正">
+                            <span class="material-symbols-outlined pointer-events-none">edit</span>
                         </button>
-                        <button class="btn-icon btn-sm hover:bg-red-100 text-red-500 delete-btn" data-index="${index}" title="削除">
-                            <span class="material-symbols-outlined">delete</span>
+                        <button class="btn-icon btn-sm hover:bg-red-100 text-red-500" id="delete-btn-${dateStr}" title="削除">
+                            <span class="material-symbols-outlined pointer-events-none">delete</span>
                         </button>
                     </div>
                 </div>
             `;
+      entriesUl.appendChild(li);
+      
       // 編集ボタンにイベントリスナーを追加
-      const editBtn = li.querySelector(".edit-btn");
+      const editBtn = document.getElementById(`edit-btn-${dateStr}`);
       if (editBtn) {
         editBtn.addEventListener("click", (e) => {
+          e.preventDefault();
           e.stopPropagation();
           editEntryCallback(index);
         });
       }
       // 削除ボタンにイベントリスナーを追加
-      const deleteBtn = li.querySelector(".delete-btn");
+      const deleteBtn = document.getElementById(`delete-btn-${dateStr}`);
       if (deleteBtn) {
         deleteBtn.addEventListener("click", (e) => {
+          e.preventDefault();
           e.stopPropagation();
           deleteEntryCallback(index);
         });
       }
-      entriesUl.appendChild(li);
     });
   }
 
@@ -144,10 +148,6 @@ export function updateUI(
 
       const li = document.createElement("li");
       li.className = "md-list-item list-item-enter";
-      let usageText = `<span class="font-bold text-emerald-600">酸素 ${oxygenUsageStr}L</span>`;
-      if (noRoomAirMode && amounts.nitrogen > 0) {
-        usageText += ` <span class="text-slate-400">/</span> <span class="font-bold text-slate-600">窒素 ${nitrogenUsageStr}L</span>`;
-      }
       li.innerHTML = `
                 <div class="flex items-center justify-between gap-3">
                     <div class="flex items-center gap-3 flex-grow">
@@ -156,20 +156,23 @@ export function updateUI(
                         </div>
                         <span class="md-body-large"><span class="font-semibold text-slate-700">${date}日:</span> ${usageText}</span>
                     </div>
-                    <button class="btn-icon btn-sm primary flex-shrink-0 copy-btn" data-oxygen="${oxygenUsageStr}" data-nitrogen="${nitrogenUsageStr}" title="コピー">
-                        <span class="material-symbols-outlined">content_copy</span>
+                    <button class="btn-icon btn-sm primary flex-shrink-0" id="copy-btn-${date}" title="コピー" data-oxygen="${oxygenUsageStr}" data-nitrogen="${nitrogenUsageStr}">
+                        <span class="material-symbols-outlined pointer-events-none">content_copy</span>
                     </button>
                 </div>
             `;
+      usageUl.appendChild(li);
+      
       // コピーボタンに直接イベントリスナーを追加
-      const copyBtn = li.querySelector(".copy-btn");
+      const copyBtn = document.getElementById(`copy-btn-${date}`);
       if (copyBtn) {
         copyBtn.addEventListener("click", (e) => {
+          e.preventDefault();
           e.stopPropagation();
+          console.log("Copy button clicked:", oxygenUsageStr, nitrogenUsageStr);
           copyUsageCallback(oxygenUsageStr, nitrogenUsageStr);
         });
       }
-      usageUl.appendChild(li);
     });
   }
 }
