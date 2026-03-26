@@ -280,13 +280,48 @@ export function copyUsageToClipboard(
   if (noRoomAirMode && parseFloat(nitrogenUsage) > 0) {
     text += `\n402400+552010/${nitrogenUsage}*1`;
   }
-  navigator.clipboard
-    .writeText(text)
-    .then(() => {
+  
+  // Clipboard API が利用可能かチェック（HTTPS または localhost の場合のみ）
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        displayError("✅ クリップボードにコピーしました");
+      })
+      .catch((err) => {
+        console.error("Clipboard API 失敗：", err);
+        fallbackCopyToClipboard(text);
+      });
+  } else {
+    // HTTP 環境などのフォールバック
+    fallbackCopyToClipboard(text);
+  }
+}
+
+/**
+ * フォールバックのコピー機能（document.execCommand）
+ */
+function fallbackCopyToClipboard(text: string): void {
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  textArea.style.position = "fixed";
+  textArea.style.left = "-999999px";
+  textArea.style.top = "-999999px";
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  
+  try {
+    const successful = document.execCommand("copy");
+    if (successful) {
       displayError("✅ クリップボードにコピーしました");
-    })
-    .catch((err) => {
-      console.error("コピーに失敗しました：", err);
-      displayError("❌ クリップボードへのコピーに失敗しました");
-    });
+    } else {
+      displayError("❌ コピーに失敗しました");
+    }
+  } catch (err) {
+    console.error("execCommand 失敗：", err);
+    displayError("❌ コピーに失敗しました");
+  }
+  
+  document.body.removeChild(textArea);
 }
