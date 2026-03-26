@@ -32,6 +32,8 @@ const settingsOverlayElement =
 const fio2ModeCheckboxElement = getElementById<HTMLInputElement>("fio2Mode");
 const noRoomAirModeCheckboxElement =
   getElementById<HTMLInputElement>("noRoomAirMode");
+const darkModeCheckboxElement =
+  getElementById<HTMLInputElement>("darkMode");
 const addEntryBtnElement = getElementById<HTMLButtonElement>("addEntryBtn");
 const clearAllBtnElement = getElementById<HTMLButtonElement>("clearAllBtn");
 const settingsBtnElement = getElementById<HTMLButtonElement>("settingsBtn");
@@ -52,6 +54,7 @@ export const usageList = () => usageListElement;
 export const settingsOverlay = () => settingsOverlayElement;
 export const fio2ModeCheckbox = () => fio2ModeCheckboxElement;
 export const noRoomAirModeCheckbox = () => noRoomAirModeCheckboxElement;
+export const darkModeCheckbox = () => darkModeCheckboxElement;
 export const addEntryBtn = () => addEntryBtnElement;
 export const clearAllBtn = () => clearAllBtnElement;
 export const settingsBtn = () => settingsBtnElement;
@@ -69,6 +72,8 @@ export function updateUI(
   editEntryCallback: (index: number) => void,
   deleteEntryCallback: (index: number) => void,
   copyUsageCallback: (oxygen: string, nitrogen: string) => void,
+  saveEditCallback?: (index: number, dateTime: string, flow: string, fio2?: string) => void,
+  cancelEditCallback?: () => void,
 ): void {
   const entriesUl = entriesList();
   entriesUl.innerHTML = "";
@@ -80,43 +85,97 @@ export function updateUI(
       const li = document.createElement("li");
       li.className = "md-list-item list-item-enter";
       const dateStr = entry.dateTime.getTime();
-      li.innerHTML = `
+      
+      // 編集中の場合は入力フォームを表示、そうでなければ通常表示
+      if (entry.editing) {
+        // 編集中のフォーム
+        const dateTimeStr = formatDateForInput(entry.dateTime);
+        li.innerHTML = `
+          <div class="w-full space-y-3">
+            <div class="flex gap-3">
+              <div class="input-field-container mb-0 flex-grow">
+                <input type="text" id="edit-date-${dateStr}" placeholder=" " class="input-field w-full" value="${dateTimeStr}">
+                <label class="input-field-label">日付時刻</label>
+              </div>
+              <div class="input-field-container mb-0 flex-grow">
+                <input type="text" id="edit-flow-${dateStr}" placeholder=" " class="input-field w-full" value="${entry.flow}">
+                <label class="input-field-label">流量 (L/min)</label>
+              </div>
+              ${fio2Mode ? `
+              <div class="input-field-container mb-0 flex-grow">
+                <input type="text" id="edit-fio2-${dateStr}" placeholder=" " class="input-field w-full" value="${entry.fio2}">
+                <label class="input-field-label">FiO2(%)</label>
+              </div>
+              ` : ''}
+            </div>
+            <div class="flex justify-end gap-2">
+              <button class="btn btn-text btn-sm" id="cancel-edit-${dateStr}">
+                キャンセル
+              </button>
+              <button class="btn btn-primary btn-sm" id="save-edit-${dateStr}">
+                保存
+              </button>
+            </div>
+          </div>
+        `;
+      } else {
+        // 通常表示
+        li.innerHTML = `
                 <div class="flex items-center justify-between gap-3">
                     <div class="flex items-center gap-3 flex-grow">
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center flex-shrink-0">
-                            <span class="material-symbols-outlined text-blue-600 text-lg">schedule</span>
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-cyan-100 dark:from-blue-900/50 dark:to-cyan-900/50 flex items-center justify-center flex-shrink-0">
+                            <span class="material-symbols-outlined text-blue-600 dark:text-blue-400 text-lg">schedule</span>
                         </div>
-                        <span class="md-body-large font-medium">${formatDate(entry.dateTime)} <span class="text-blue-600 font-bold">${entry.flow}L/min</span>${fio2Mode ? `<span class="text-emerald-600 font-bold"> FiO2:${entry.fio2}%</span>` : ""}</span>
+                        <span class="md-body-large font-medium">${formatDate(entry.dateTime)} <span class="text-blue-600 dark:text-blue-400 font-bold">${entry.flow}L/min</span>${fio2Mode ? `<span class="text-emerald-600 dark:text-emerald-400 font-bold"> FiO2:${entry.fio2}%</span>` : ""}</span>
                     </div>
                     <div class="flex gap-2 flex-shrink-0">
-                        <button class="btn-icon btn-sm hover:bg-blue-100" id="edit-btn-${dateStr}" title="修正">
+                        <button class="btn-icon btn-sm hover:bg-blue-100 dark:hover:bg-blue-900/30" id="edit-btn-${dateStr}" title="修正">
                             <span class="material-symbols-outlined pointer-events-none">edit</span>
                         </button>
-                        <button class="btn-icon btn-sm hover:bg-red-100 text-red-500" id="delete-btn-${dateStr}" title="削除">
+                        <button class="btn-icon btn-sm hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500" id="delete-btn-${dateStr}" title="削除">
                             <span class="material-symbols-outlined pointer-events-none">delete</span>
                         </button>
                     </div>
                 </div>
             `;
+      }
       entriesUl.appendChild(li);
       
-      // 編集ボタンにイベントリスナーを追加
-      const editBtn = document.getElementById(`edit-btn-${dateStr}`);
-      if (editBtn) {
-        editBtn.addEventListener("click", (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          editEntryCallback(index);
-        });
-      }
-      // 削除ボタンにイベントリスナーを追加
-      const deleteBtn = document.getElementById(`delete-btn-${dateStr}`);
-      if (deleteBtn) {
-        deleteBtn.addEventListener("click", (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          deleteEntryCallback(index);
-        });
+      if (entry.editing && saveEditCallback && cancelEditCallback) {
+        // 保存ボタンのイベント
+        const saveBtn = document.getElementById(`save-edit-${dateStr}`);
+        if (saveBtn) {
+          saveBtn.addEventListener("click", () => {
+            const dateInput = document.getElementById(`edit-date-${dateStr}`) as HTMLInputElement;
+            const flowInput = document.getElementById(`edit-flow-${dateStr}`) as HTMLInputElement;
+            const fio2Input = document.getElementById(`edit-fio2-${dateStr}`) as HTMLInputElement;
+            saveEditCallback(index, dateInput.value, flowInput.value, fio2Input?.value);
+          });
+        }
+        // キャンセルボタンのイベント
+        const cancelBtn = document.getElementById(`cancel-edit-${dateStr}`);
+        if (cancelBtn) {
+          cancelBtn.addEventListener("click", cancelEditCallback);
+        }
+      } else if (!entry.editing) {
+        // 編集ボタンのイベント
+        const editBtn = document.getElementById(`edit-btn-${dateStr}`);
+        if (editBtn) {
+          editBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            editEntryCallback(index);
+          });
+        }
+        // 削除ボタンのイベント
+        const deleteBtn = document.getElementById(`delete-btn-${dateStr}`);
+        if (deleteBtn) {
+          deleteBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            deleteEntryCallback(index);
+          });
+        }
       }
     });
   }
@@ -213,6 +272,32 @@ export function toggleSettings(event?: MouseEvent): void {
     overlay.classList.add("hidden");
   } else if (!event) {
     overlay.classList.toggle("hidden");
+  }
+}
+
+/**
+ * ダークモードのトグル処理
+ */
+export function handleDarkModeToggle(): boolean {
+  const isChecked = darkModeCheckbox().checked;
+  if (isChecked) {
+    document.documentElement.classList.add("dark");
+    localStorage.setItem("darkMode", "true");
+  } else {
+    document.documentElement.classList.remove("dark");
+    localStorage.setItem("darkMode", "false");
+  }
+  return isChecked;
+}
+
+/**
+ * ダークモードの初期化
+ */
+export function initializeDarkMode(): void {
+  const saved = localStorage.getItem("darkMode");
+  if (saved === "true") {
+    document.documentElement.classList.add("dark");
+    darkModeCheckbox().checked = true;
   }
 }
 

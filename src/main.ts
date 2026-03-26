@@ -10,14 +10,14 @@ import {
   fio2InputGroup,
   fio2ModeCheckbox,
   flowInput,
+  handleDarkModeToggle,
   handleFio2ModeToggle,
   handleNoRoomAirModeToggle,
+  initializeDarkMode,
   noRoomAirModeCheckbox,
-  populateInputFieldsForEdit,
   settingsBtn,
-  // settingsCloseBtn, // 削除
   settingsCloseBtn2,
-  settingsOverlay, // settingsOverlay をインポートに追加
+  settingsOverlay,
   snackbarAction,
   toggleSettings,
   updateUI,
@@ -34,28 +34,21 @@ let noRoomAirMode = false;
 
 /**
  * DDHHMM 形式または HHMM 形式の文字列を Date オブジェクトにパースする。
- * HHMM形式で日付が省略された場合は、lastDateが存在すればその日付を、なければ現在の日付を使用する。
- * @param input 日付時刻文字列
- * @returns パースされた Date オブジェクト、または無効な場合は null
  */
 function parseDateTime(input: string): Date | null {
   let day: number, hour: number, minute: number;
   const now = new Date();
 
   if (input.length <= 4) {
-    // HHMM 形式 (日付省略)
     input = input.padStart(4, "0");
     if (!lastDate) {
-      // 初回入力 (lastDate が null) の場合、日付を1日に設定
       day = 1;
     } else {
-      // 2回目以降は前回の日付を使用
       day = lastDate.getDate();
     }
     hour = parseInt(input.slice(0, 2), 10);
     minute = parseInt(input.slice(2, 4), 10);
   } else {
-    // DDHHMM 形式
     input = input.padStart(6, "0");
     day = parseInt(input.slice(0, 2), 10);
     hour = parseInt(input.slice(2, 4), 10);
@@ -71,22 +64,14 @@ function parseDateTime(input: string): Date | null {
     hour >= 24 ||
     minute >= 60
   ) {
-    // displayError は呼び出し元で行うため、ここでは null を返すだけ
     return null;
   }
 
-  // 年と月は現在のものを使用。月またぎの厳密な処理は calculateUsage で考慮される想定。
   return new Date(now.getFullYear(), now.getMonth(), day, hour, minute);
 }
 
 /**
- * 入力値を検証し、Entryオブジェクトをパースして返す。
- * 無効な場合はエラーを表示し null を返す。
- * @param dateTimeStr 日付時刻文字列
- * @param flowStr 流量文字列
- * @param fio2Str FiO2文字列
- * @param currentFio2Mode 現在のFiO2モード
- * @returns 有効な場合はEntryオブジェクト、無効な場合はnull
+ * 入力値を検証し、Entry オブジェクトをパースして返す。
  */
 function validateAndParseEntry(
   dateTimeStr: string,
@@ -109,24 +94,40 @@ function validateAndParseEntry(
 
   const parsedFlow = parseFloat(flowStr);
   if (Number.isNaN(parsedFlow) || parsedFlow < 0) {
-    displayError("無効な流量です。0以上の数値を入力してください。");
+    displayError("無効な流量です。0 以上の数値を入力してください。");
     return null;
   }
 
-  let parsedFio2 = 21; // デフォルト値
+  let parsedFio2 = 21;
   if (currentFio2Mode) {
     if (!fio2Str) {
-      displayError("FiO2モードが有効です。FiO2値を入力してください。");
+      displayError("FiO2 モードが有効です。FiO2 値を入力してください。");
       return null;
     }
     parsedFio2 = parseInt(fio2Str, 10);
     if (Number.isNaN(parsedFio2) || parsedFio2 < 21 || parsedFio2 > 100) {
-      displayError("無効なFiO2です。21以上100以下の整数を入力してください。");
+      displayError("無効な FiO2 です。21 以上 100 以下の整数を入力してください。");
       return null;
     }
   }
-  displayError(""); // エラーをクリア
-  return { dateTime: parsedDateTime, flow: parsedFlow, fio2: parsedFio2 };
+  displayError("");
+  return { dateTime: parsedDateTime, flow: parsedFlow, fio2: parsedFio2, editing: false };
+}
+
+/**
+ * UI を更新するヘルパー
+ */
+function refreshUI(): void {
+  updateUI(
+    entries,
+    fio2Mode,
+    noRoomAirMode,
+    handleEditEntry,
+    handleDeleteEntry,
+    handleCopyUsage,
+    saveEditEntry,
+    cancelEditEntry,
+  );
 }
 
 /**
@@ -152,57 +153,68 @@ function addEntry(): void {
       lastDate = entries[entries.length - 1].dateTime;
     }
 
-    updateUI(
-      entries,
-      fio2Mode,
-      noRoomAirMode,
-      handleEditEntry,
-      handleDeleteEntry,
-      handleCopyUsage,
-    );
+    refreshUI();
     clearInputFields();
   }
 }
 
 /**
  * 指定されたインデックスのエントリを削除する
- * @param index 削除するエントリのインデックス
  */
 function handleDeleteEntry(index: number): void {
   if (index >= 0 && index < entries.length) {
     entries.splice(index, 1);
     lastDate = entries.length > 0 ? entries[entries.length - 1].dateTime : null;
-    updateUI(
-      entries,
-      fio2Mode,
-      noRoomAirMode,
-      handleEditEntry,
-      handleDeleteEntry,
-      handleCopyUsage,
-    );
+    refreshUI();
   }
 }
 
 /**
- * 指定されたインデックスのエントリを編集する (削除して入力欄に戻す)
- * @param index 編集するエントリのインデックス
+ * 指定されたインデックスのエントリを編集モードにする (in-place 編集)
  */
 function handleEditEntry(index: number): void {
   if (index >= 0 && index < entries.length) {
-    const entryToEdit = entries[index];
-    populateInputFieldsForEdit(entryToEdit, fio2Mode);
-    entries.splice(index, 1);
-    lastDate = entries.length > 0 ? entries[entries.length - 1].dateTime : null;
-    updateUI(
-      entries,
-      fio2Mode,
-      noRoomAirMode,
-      handleEditEntry,
-      handleDeleteEntry,
-      handleCopyUsage,
-    );
-    dateTimeInput().focus();
+    // 編集中のフラグを立てる
+    entries[index].editing = true;
+    refreshUI();
   }
+}
+
+/**
+ * 編集を保存する
+ */
+function saveEditEntry(index: number, dateTimeStr: string, flowStr: string, fio2Str?: string): void {
+  if (index >= 0 && index < entries.length) {
+    const newEntry = validateAndParseEntry(
+      dateTimeStr,
+      flowStr,
+      fio2Str || "",
+      fio2Mode,
+    );
+    
+    if (newEntry) {
+      entries[index] = newEntry;
+      entries.sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime());
+      
+      if (entries.length > 0) {
+        lastDate = entries[entries.length - 1].dateTime;
+      }
+      
+      refreshUI();
+      displayError("✅ 編集を保存しました");
+    }
+  }
+}
+
+/**
+ * 編集をキャンセルする
+ */
+function cancelEditEntry(): void {
+  // 編集中のエントリをすべてキャンセル
+  entries.forEach((entry) => {
+    entry.editing = false;
+  });
+  refreshUI();
 }
 
 /**
@@ -211,14 +223,7 @@ function handleEditEntry(index: number): void {
 function clearAll(): void {
   entries = [];
   lastDate = null;
-  updateUI(
-    entries,
-    fio2Mode,
-    noRoomAirMode,
-    handleEditEntry,
-    handleDeleteEntry,
-    handleCopyUsage,
-  );
+  refreshUI();
   clearInputFields();
 }
 
@@ -232,27 +237,35 @@ function handleCopyUsage(oxygen: string, nitrogen: string): void {
 // --- Event Listeners Setup ---
 
 function initialize(): void {
-  updateUI(
-    entries,
-    fio2Mode,
-    noRoomAirMode,
-    handleEditEntry,
-    handleDeleteEntry,
-    handleCopyUsage,
-  );
+  // ダークモードの初期化
+  initializeDarkMode();
+  
+  refreshUI();
 
   addEntryBtn().addEventListener("click", addEntry);
   clearAllBtn().addEventListener("click", clearAll);
-  settingsBtn().addEventListener("click", () => toggleSettings()); // イベントオブジェクトを渡さない
-  settingsCloseBtn2().addEventListener("click", () => toggleSettings()); // イベントオブジェクトを渡さない
-  settingsOverlay().addEventListener("click", (event) => toggleSettings(event)); // オーバーレイクリック
+  settingsBtn().addEventListener("click", () => toggleSettings());
+  settingsCloseBtn2().addEventListener("click", () => toggleSettings());
+  settingsOverlay().addEventListener("click", (event) => toggleSettings(event));
   snackbarAction().addEventListener("click", () => displayError(""));
 
-  // トグルスイッチのクリックイベント
+  // ダークモードのトグル
+  const darkModeSwitch =
+    document.getElementById("darkMode")?.parentElement?.closest(".md-switch");
+  if (darkModeSwitch) {
+    darkModeSwitch.addEventListener("click", () => {
+      document.getElementById("darkMode")?.click();
+    });
+  }
+  document.getElementById("darkMode")?.addEventListener("change", () => {
+    handleDarkModeToggle();
+  });
+
+  // FiO2 モードのトグル
   const fio2Switch = fio2ModeCheckbox().parentElement?.closest(".md-switch");
   if (fio2Switch) {
     fio2Switch.addEventListener("click", () => {
-      fio2ModeCheckbox().click(); // チェックボックスのクリックイベントを発火
+      fio2ModeCheckbox().click();
     });
   }
 
@@ -261,32 +274,18 @@ function initialize(): void {
   if (noRoomAirSwitch) {
     noRoomAirSwitch.addEventListener("click", () => {
       if (!noRoomAirModeCheckbox().disabled) {
-        noRoomAirModeCheckbox().click(); // チェックボックスのクリックイベントを発火
+        noRoomAirModeCheckbox().click();
       }
     });
   }
 
   fio2ModeCheckbox().addEventListener("change", () => {
     fio2Mode = handleFio2ModeToggle(clearAll);
-    updateUI(
-      entries,
-      fio2Mode,
-      noRoomAirMode,
-      handleEditEntry,
-      handleDeleteEntry,
-      handleCopyUsage,
-    );
+    refreshUI();
   });
   noRoomAirModeCheckbox().addEventListener("change", () => {
     noRoomAirMode = handleNoRoomAirModeToggle(clearAll);
-    updateUI(
-      entries,
-      fio2Mode,
-      noRoomAirMode,
-      handleEditEntry,
-      handleDeleteEntry,
-      handleCopyUsage,
-    );
+    refreshUI();
   });
 
   dateTimeInput().addEventListener("keypress", (e: KeyboardEvent) => {
@@ -314,7 +313,6 @@ function initialize(): void {
     }
   });
 
-  // 初期状態で FiO2 入力欄の表示を制御
   fio2InputGroup().classList.toggle("hidden", !fio2Mode);
   noRoomAirModeCheckbox().disabled = !fio2Mode;
 }

@@ -71,6 +71,75 @@
   --md-motion-easing-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
+/* ダークモード */
+:root.dark {
+  --md-primary: #4da3ff;
+  --md-on-primary: #003d7a;
+  --md-primary-container: #0056a8;
+  --md-on-primary-container: #d0e7ff;
+
+  --md-secondary: #bac7db;
+  --md-on-secondary: #253140;
+  --md-secondary-container: #3b4857;
+  --md-on-secondary-container: #d7e3f7;
+
+  --md-tertiary: #d3befc;
+  --md-on-tertiary: #382960;
+  --md-tertiary-container: #4f3f70;
+  --md-on-tertiary-container: #f2daff;
+
+  --md-error: #ffb4ab;
+  --md-on-error: #690005;
+  --md-error-container: #93000a;
+  --md-on-error-container: #ffdad6;
+
+  --md-success: #4ade80;
+  --md-on-success: #003d25;
+  --md-success-container: #005637;
+  --md-on-success-container: #d4f5e1;
+
+  --md-background: #0f172a;
+  --md-on-background: #e2e8f0;
+  --md-surface: #1e293b;
+  --md-on-surface: #e2e8f0;
+
+  --md-surface-variant: #334155;
+  --md-on-surface-variant: #cbd5e1;
+  --md-outline: #64748b;
+  --md-outline-variant: #475569;
+
+  --glass-bg: rgba(30, 41, 59, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+
+  --gradient-surface: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+}
+
+:root.dark body {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+}
+
+:root.dark .md-list-item {
+  background: rgba(51, 65, 85, 0.5);
+}
+
+:root.dark .input-field {
+  background: rgba(51, 65, 85, 0.5);
+}
+
+:root.dark .input-field:focus ~ .input-field-label,
+:root.dark .input-field:not(:placeholder-shown) ~ .input-field-label {
+  background: var(--md-surface);
+}
+
+:root.dark .btn-icon {
+  background: rgba(51, 65, 85, 0.5);
+}
+
+:root.dark .btn-icon:hover {
+  background: rgba(77, 163, 255, 0.15);
+}
+
 /* タイポグラフィ */
 @layer base {
   html {
