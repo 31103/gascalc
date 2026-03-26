@@ -97,9 +97,10 @@ export function updateUI(
     });
     entriesUl.onclick = (event) => {
       const target = event.target as HTMLElement;
-      if (target.tagName === "BUTTON") {
-        const index = parseInt(target.dataset.index ?? "-1", 10);
-        const action = target.dataset.action;
+      const button = target.closest("button");
+      if (button) {
+        const index = parseInt(button.dataset.index ?? "-1", 10);
+        const action = button.dataset.action;
         if (index !== -1) {
           if (action === "edit") {
             editEntryCallback(index);
@@ -157,9 +158,10 @@ export function updateUI(
     });
     usageUl.onclick = (event) => {
       const target = event.target as HTMLElement;
-      if (target.tagName === "BUTTON" && target.dataset.action === "copy") {
-        const oxygen = target.dataset.oxygen ?? "0";
-        const nitrogen = target.dataset.nitrogen ?? "0";
+      const button = target.closest("button");
+      if (button && button.dataset.action === "copy") {
+        const oxygen = button.dataset.oxygen ?? "0";
+        const nitrogen = button.dataset.nitrogen ?? "0";
         copyUsageCallback(oxygen, nitrogen);
       }
     };
