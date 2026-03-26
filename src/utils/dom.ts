@@ -88,28 +88,33 @@ export function updateUI(
                         <span class="md-body-large font-medium">${formatDate(entry.dateTime)} <span class="text-blue-600 font-bold">${entry.flow}L/min</span>${fio2Mode ? `<span class="text-emerald-600 font-bold"> FiO2:${entry.fio2}%</span>` : ""}</span>
                     </div>
                     <div class="flex gap-2 flex-shrink-0">
-                        <button class="btn-icon btn-sm hover:bg-blue-100" data-index="${index}" data-action="edit" title="修正"><span class="material-symbols-outlined">edit</span></button>
-                        <button class="btn-icon btn-sm hover:bg-red-100 text-red-500" data-index="${index}" data-action="delete" title="削除"><span class="material-symbols-outlined">delete</span></button>
+                        <button class="btn-icon btn-sm hover:bg-blue-100 edit-btn" data-index="${index}" title="修正">
+                            <span class="material-symbols-outlined">edit</span>
+                        </button>
+                        <button class="btn-icon btn-sm hover:bg-red-100 text-red-500 delete-btn" data-index="${index}" title="削除">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
                     </div>
                 </div>
             `;
+      // 編集ボタンにイベントリスナーを追加
+      const editBtn = li.querySelector(".edit-btn");
+      if (editBtn) {
+        editBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          editEntryCallback(index);
+        });
+      }
+      // 削除ボタンにイベントリスナーを追加
+      const deleteBtn = li.querySelector(".delete-btn");
+      if (deleteBtn) {
+        deleteBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          deleteEntryCallback(index);
+        });
+      }
       entriesUl.appendChild(li);
     });
-    entriesUl.onclick = (event) => {
-      const target = event.target as HTMLElement;
-      const button = target.closest("button");
-      if (button) {
-        const index = parseInt(button.dataset.index ?? "-1", 10);
-        const action = button.dataset.action;
-        if (index !== -1) {
-          if (action === "edit") {
-            editEntryCallback(index);
-          } else if (action === "delete") {
-            deleteEntryCallback(index);
-          }
-        }
-      }
-    };
   }
 
   const usageData = calculateUsage(entriesData, fio2Mode, noRoomAirMode);
@@ -151,20 +156,21 @@ export function updateUI(
                         </div>
                         <span class="md-body-large"><span class="font-semibold text-slate-700">${date}日:</span> ${usageText}</span>
                     </div>
-                    <button class="btn-icon btn-sm primary flex-shrink-0" data-oxygen="${oxygenUsageStr}" data-nitrogen="${nitrogenUsageStr}" data-action="copy" title="コピー"><span class="material-symbols-outlined">content_copy</span></button>
+                    <button class="btn-icon btn-sm primary flex-shrink-0 copy-btn" data-oxygen="${oxygenUsageStr}" data-nitrogen="${nitrogenUsageStr}" title="コピー">
+                        <span class="material-symbols-outlined">content_copy</span>
+                    </button>
                 </div>
             `;
+      // コピーボタンに直接イベントリスナーを追加
+      const copyBtn = li.querySelector(".copy-btn");
+      if (copyBtn) {
+        copyBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          copyUsageCallback(oxygenUsageStr, nitrogenUsageStr);
+        });
+      }
       usageUl.appendChild(li);
     });
-    usageUl.onclick = (event) => {
-      const target = event.target as HTMLElement;
-      const button = target.closest("button");
-      if (button && button.dataset.action === "copy") {
-        const oxygen = button.dataset.oxygen ?? "0";
-        const nitrogen = button.dataset.nitrogen ?? "0";
-        copyUsageCallback(oxygen, nitrogen);
-      }
-    };
   }
 }
 
