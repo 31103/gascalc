@@ -1,95 +1,113 @@
 @import "tailwindcss";
 
-/* Material Design 3 デザインシステム */
+/* Modern Design System - Medical Gas Calculator */
 :root {
-  /* カラーシステム - 医療向け青系パレット */
-  --md-primary: #006495;
+  /* カラーシステム - モダンな青系グラデーションパレット */
+  --md-primary: #0077e6;
   --md-on-primary: #ffffff;
-  --md-primary-container: #cde5ff;
-  --md-on-primary-container: #001d32;
+  --md-primary-container: #d0e7ff;
+  --md-on-primary-container: #001f3d;
 
-  --md-secondary: #50606e;
+  --md-secondary: #535f70;
   --md-on-secondary: #ffffff;
-  --md-secondary-container: #d3e5f5;
-  --md-on-secondary-container: #0c1d29;
+  --md-secondary-container: #d7e3f7;
+  --md-on-secondary-container: #101c2b;
 
-  --md-tertiary: #00639b;
+  --md-tertiary: #6b5778;
   --md-on-tertiary: #ffffff;
-  --md-tertiary-container: #d0e4ff;
-  --md-on-tertiary-container: #001d34;
+  --md-tertiary-container: #f2daff;
+  --md-on-tertiary-container: #251431;
 
   --md-error: #ba1a1a;
   --md-on-error: #ffffff;
   --md-error-container: #ffdad6;
   --md-on-error-container: #410002;
 
-  --md-background: #ffffff;
-  --md-on-background: #1a1c1e;
+  --md-success: #00a86b;
+  --md-on-success: #ffffff;
+  --md-success-container: #d4f5e1;
+  --md-on-success-container: #00211a;
+
+  --md-background: #f8fafc;
+  --md-on-background: #0f172a;
   --md-surface: #ffffff;
-  --md-on-surface: #1a1c1e;
+  --md-on-surface: #0f172a;
 
-  --md-surface-variant: #dfe2eb;
-  --md-on-surface-variant: #43474e;
-  --md-outline: #73777f;
-  --md-outline-variant: #c3c7cf;
+  --md-surface-variant: #e2e8f0;
+  --md-on-surface-variant: #475569;
+  --md-outline: #94a3b8;
+  --md-outline-variant: #cbd5e1;
 
-  /* エレベーション（影） */
-  --md-elevation-level1: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --md-elevation-level2:
-    0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.15);
-  --md-elevation-level3:
-    0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 8px rgba(0, 0, 0, 0.15);
-  --md-elevation-level4:
-    0 2px 3px rgba(0, 0, 0, 0.3), 0 6px 10px rgba(0, 0, 0, 0.15);
-  --md-elevation-level5:
-    0 4px 4px rgba(0, 0, 0, 0.3), 0 8px 12px rgba(0, 0, 0, 0.15);
+  /* グラスモーフィズム効果 */
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 
-  /* 形状（角丸） */
-  --md-shape-corner-small: 4px;
-  --md-shape-corner-medium: 8px;
-  --md-shape-corner-large: 16px;
+  /* エレベーション（影） - より自然な影 */
+  --md-elevation-level1: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --md-elevation-level2: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --md-elevation-level3: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+  --md-elevation-level4: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
+  --md-elevation-level5: 0 25px 50px rgba(0, 0, 0, 0.15), 0 15px 20px rgba(0, 0, 0, 0.1);
+
+  /* グラデーション */
+  --gradient-primary: linear-gradient(135deg, #0077e6 0%, #00c6ff 100%);
+  --gradient-surface: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  --gradient-accent: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+  /* 形状（角丸） - より大きな角丸 */
+  --md-shape-corner-small: 8px;
+  --md-shape-corner-medium: 12px;
+  --md-shape-corner-large: 20px;
+  --md-shape-corner-xl: 28px;
   --md-shape-corner-full: 9999px;
 
-  /* アニメーション */
-  --md-motion-duration-short: 100ms;
-  --md-motion-duration-medium: 200ms;
-  --md-motion-duration-long: 300ms;
-  --md-motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  /* アニメーション - より滑らか */
+  --md-motion-duration-short: 150ms;
+  --md-motion-duration-medium: 250ms;
+  --md-motion-duration-long: 400ms;
+  --md-motion-easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
   --md-motion-easing-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --md-motion-easing-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 /* タイポグラフィ */
 @layer base {
   html {
     font-family: "Roboto", "Noto Sans JP", sans-serif;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply antialiased;
   }
 
   h1,
   .md-headline-large {
-    @apply text-3xl font-normal leading-tight;
+    @apply text-3xl font-bold leading-tight;
   }
 
   h2,
   .md-headline-medium {
-    @apply text-2xl font-normal leading-tight;
+    @apply text-2xl font-bold leading-tight;
   }
 
   h3,
   .md-headline-small {
-    @apply text-xl font-normal leading-tight;
+    @apply text-xl font-semibold leading-tight;
   }
 
   h4,
   .md-title-large {
-    @apply text-lg font-medium leading-tight;
+    @apply text-lg font-semibold leading-tight;
   }
 
   .md-title-medium {
-    @apply text-base font-medium leading-tight;
+    @apply text-base font-semibold leading-tight;
   }
 
   .md-title-small {
-    @apply text-sm font-medium leading-tight;
+    @apply text-sm font-semibold leading-tight;
   }
 
   .md-body-large {
@@ -105,201 +123,227 @@
   }
 
   .md-label-large {
-    @apply text-sm font-medium leading-tight;
+    @apply text-sm font-semibold leading-tight;
   }
 
   .md-label-medium {
-    @apply text-xs font-medium leading-tight;
+    @apply text-xs font-semibold leading-tight;
   }
 
   .md-label-small {
-    @apply text-xs font-medium leading-none;
+    @apply text-xs font-semibold leading-none;
   }
 }
 
-/* Material Design 3 コンポーネント */
+/* Modern Components */
 @layer components {
-  /* ボタン */
+  /* ボタン - モダンなデザイン */
   .btn {
-    @apply inline-flex items-center justify-center px-6 py-2.5 rounded-full font-medium transition-all duration-200 select-none;
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-full font-semibold transition-all duration-300 select-none transform;
     border-radius: var(--md-shape-corner-full);
   }
 
   .btn-primary {
     @apply text-white;
-    background-color: var(--md-primary);
+    background: var(--gradient-primary);
     color: var(--md-on-primary);
+    box-shadow: 0 4px 14px rgba(0, 119, 230, 0.3);
   }
 
   .btn-primary:hover {
-    @apply shadow-md;
-    background-color: color-mix(in srgb, var(--md-primary) 90%, #000);
+    @apply shadow-lg transform -translate-y-0.5;
+    box-shadow: 0 6px 20px rgba(0, 119, 230, 0.4);
   }
 
   .btn-primary:active {
-    @apply shadow-sm;
-    background-color: color-mix(in srgb, var(--md-primary) 80%, #000);
+    @apply shadow-sm transform translate-y-0;
   }
 
   .btn-outlined {
-    @apply bg-transparent;
+    @apply bg-transparent font-medium;
     color: var(--md-primary);
-    border: 1px solid var(--md-outline);
+    border: 2px solid var(--md-primary);
   }
 
   .btn-outlined:hover {
-    background-color: color-mix(in srgb, var(--md-primary) 8%, transparent);
-  }
-
-  .btn-outlined:active {
-    background-color: color-mix(in srgb, var(--md-primary) 12%, transparent);
+    background: var(--gradient-primary);
+    color: white;
+    @apply shadow-md;
   }
 
   .btn-text {
-    @apply bg-transparent;
+    @apply bg-transparent font-medium;
     color: var(--md-primary);
   }
 
   .btn-text:hover {
-    background-color: color-mix(in srgb, var(--md-primary) 8%, transparent);
+    background-color: rgba(0, 119, 230, 0.08);
   }
 
   .btn-text:active {
-    background-color: color-mix(in srgb, var(--md-primary) 12%, transparent);
+    background-color: rgba(0, 119, 230, 0.12);
   }
 
   .btn-danger {
-    background-color: var(--md-error);
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
     color: var(--md-on-error);
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
   }
 
   .btn-danger:hover {
-    background-color: color-mix(in srgb, var(--md-error) 90%, #000);
+    @apply shadow-lg transform -translate-y-0.5;
   }
 
   .btn-warning {
-    @apply bg-amber-400 text-black hover:bg-amber-500;
+    @apply bg-gradient-to-r from-amber-400 to-orange-400 text-black font-semibold;
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);
+  }
+
+  .btn-warning:hover {
+    @apply shadow-lg transform -translate-y-0.5;
   }
 
   .btn-sm {
-    @apply px-4 py-1.5 text-xs;
+    @apply px-4 py-2 text-sm;
   }
 
   .btn:disabled {
-    @apply opacity-40 cursor-not-allowed;
+    @apply opacity-50 cursor-not-allowed transform-none;
   }
 
-  /* アイコンボタン */
+  /* アイコンボタン - モダンなデザイン */
   .btn-icon {
-    @apply inline-flex items-center justify-center w-10 h-10 rounded-full;
+    @apply inline-flex items-center justify-center w-11 h-11 rounded-2xl transition-all duration-300;
     color: var(--md-on-surface-variant);
+    background: rgba(255, 255, 255, 0.5);
   }
 
   .btn-icon:hover {
-    background-color: color-mix(
-      in srgb,
-      var(--md-on-surface-variant) 8%,
-      transparent
-    );
+    background: rgba(0, 119, 230, 0.1);
+    color: var(--md-primary);
+    transform: scale(1.05);
   }
 
   .btn-icon:active {
-    background-color: color-mix(
-      in srgb,
-      var(--md-on-surface-variant) 12%,
-      transparent
-    );
+    transform: scale(0.95);
   }
 
-  /* 入力フィールド */
+  .btn-icon.primary {
+    @apply text-white;
+    background: var(--gradient-primary);
+    box-shadow: 0 4px 14px rgba(0, 119, 230, 0.3);
+  }
+
+  .btn-icon.primary:hover {
+    box-shadow: 0 6px 20px rgba(0, 119, 230, 0.4);
+    transform: scale(1.05) translateY(-2px);
+  }
+
+  /* 入力フィールド - モダンなデザイン */
   .input-field-container {
     @apply relative mb-4;
   }
 
   .input-field {
-    @apply w-full px-3 py-2.5 text-base bg-transparent transition-all duration-200;
-    border: 1px solid var(--md-outline);
-    border-radius: var(--md-shape-corner-small);
+    @apply w-full px-4 py-3 text-base bg-white/80 backdrop-blur-sm transition-all duration-300;
+    border: 2px solid var(--md-outline-variant);
+    border-radius: var(--md-shape-corner-medium);
     color: var(--md-on-surface);
-    /* 高さを固定するために、フォーカス時のpaddingを考慮したpaddingを通常時にも設定 */
-    /* (16px - 2.5px*2 + 1px(border-diff)) / 2 = (16 - 5 + 1)/2 = 6px の差分を上下に */
-    /* py-2.5 は 10px。 focus時は pt-16px, pb-8px。差は (16+8) - (10+10) = 4px */
-    /* この差分を吸収するように調整。 box-sizing: border-box が前提 */
-    padding-top: calc(
-      0.625rem +
-      1px
-    ); /* 10px + 1px (border-width difference) */
-    padding-bottom: calc(0.625rem + 1px); /* 10px + 1px */
+    padding-top: calc(0.75rem + 1px);
+    padding-bottom: calc(0.75rem + 1px);
   }
 
   .input-field:focus {
     @apply outline-none;
     border-color: var(--md-primary);
     border-width: 2px;
-    /* フォーカス時のpaddingは、ラベルの移動に合わせて調整 */
-    padding-top: 1rem; /* 16px */
-    padding-bottom: 0.5rem; /* 8px */
+    background: white;
+    box-shadow: 0 0 0 4px rgba(0, 119, 230, 0.1);
+    padding-top: 1rem;
+    padding-bottom: 0.5rem;
   }
 
   .input-field-label {
-    @apply absolute left-3 top-2.5 text-sm transition-all duration-200 pointer-events-none;
+    @apply absolute left-4 top-3 text-sm font-medium transition-all duration-300 pointer-events-none;
     color: var(--md-on-surface-variant);
   }
 
   .input-field:focus ~ .input-field-label,
   .input-field:not(:placeholder-shown) ~ .input-field-label {
-    @apply text-xs transform -translate-y-3;
+    @apply text-xs font-semibold transform -translate-y-3;
     color: var(--md-primary);
+    background: white;
+    padding: 0 4px;
   }
 
   .input-field-helper {
-    @apply mt-1 text-xs;
+    @apply mt-2 text-xs font-medium;
     color: var(--md-on-surface-variant);
   }
 
   .input-field-error {
-    @apply mt-1 text-xs;
+    @apply mt-2 text-xs font-medium;
     color: var(--md-error);
   }
 
-  /* カード */
+  /* カード - グラスモーフィズム効果 */
   .md-card {
-    @apply p-4 mb-3 bg-white rounded-lg;
-    border-radius: var(--md-shape-corner-medium);
-    background-color: var(--md-surface);
+    @apply p-6 mb-4 rounded-2xl backdrop-blur-md;
+    border-radius: var(--md-shape-corner-large);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     color: var(--md-on-surface);
-    box-shadow: var(--md-elevation-level1);
-    transition: box-shadow var(--md-motion-duration-medium)
-      var(--md-motion-easing-standard);
+    box-shadow: var(--md-elevation-level2);
+    transition: all var(--md-motion-duration-medium) var(--md-motion-easing-standard);
   }
 
   .md-card:hover {
-    box-shadow: var(--md-elevation-level2);
+    box-shadow: var(--md-elevation-level3);
+    transform: translateY(-2px);
   }
 
   .md-card-elevated {
-    box-shadow: var(--md-elevation-level2);
+    box-shadow: var(--md-elevation-level3);
+    background: var(--gradient-surface);
   }
 
   .md-card-elevated:hover {
-    box-shadow: var(--md-elevation-level3);
+    box-shadow: var(--md-elevation-level4);
   }
 
-  /* ダイアログ */
+  /* ダイアログ - モダンなデザイン */
   .md-dialog-container {
-    @apply fixed inset-0 z-50 flex items-center justify-center bg-black/50;
+    @apply fixed inset-0 z-50 flex items-center justify-center;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
   }
 
   .md-dialog {
-    @apply w-full max-w-md mx-4 p-6 rounded-2xl bg-white;
-    background-color: var(--md-surface);
+    @apply w-full max-w-md mx-4 p-6 rounded-3xl;
+    background: white;
     color: var(--md-on-surface);
-    border-radius: var(--md-shape-corner-large);
-    box-shadow: var(--md-elevation-level3);
+    border-radius: var(--md-shape-corner-xl);
+    box-shadow: var(--md-elevation-level5);
+    animation: dialogSlideIn 0.3s var(--md-motion-easing-emphasized);
+  }
+
+  @keyframes dialogSlideIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95) translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
   }
 
   .md-dialog-title {
-    @apply text-xl font-medium mb-4;
+    @apply text-2xl font-bold mb-4;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
   .md-dialog-content {
@@ -310,7 +354,7 @@
     @apply flex justify-end gap-2;
   }
 
-  /* スイッチ */
+  /* スイッチ - モダンなデザイン */
   .md-switch {
     @apply relative inline-flex items-center cursor-pointer;
   }
@@ -320,62 +364,81 @@
   }
 
   .md-switch-track {
-    @apply w-12 h-6 bg-gray-200 rounded-full transition-colors duration-200;
+    @apply w-14 h-8 rounded-full transition-colors duration-300;
+    background: var(--md-outline-variant);
   }
 
   .md-switch-input:checked ~ .md-switch-track {
-    background-color: color-mix(in srgb, var(--md-primary) 30%, white);
+    background: var(--gradient-primary);
   }
 
   .md-switch-thumb {
-    @apply absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200;
-    box-shadow: var(--md-elevation-level1);
+    @apply absolute left-1 top-1 w-6 h-6 bg-white rounded-full transition-all duration-300;
+    box-shadow: var(--md-elevation-level2);
   }
 
   .md-switch-input:checked ~ .md-switch-thumb {
     @apply transform translate-x-6;
-    background-color: var(--md-primary);
+    background: white;
   }
 
   .md-switch-input:focus ~ .md-switch-track {
-    @apply ring-2;
-    /* biome-ignore lint/correctness/noUnknownProperty: TailwindCSS processes ring-color */
-    ring-color: color-mix(in srgb, var(--md-primary) 30%, transparent);
+    @apply ring-4;
+    ring-color: rgba(0, 119, 230, 0.2);
   }
 
   .md-switch-input:disabled ~ .md-switch-track,
   .md-switch-input:disabled ~ .md-switch-thumb {
-    @apply opacity-40 cursor-not-allowed;
+    @apply opacity-50 cursor-not-allowed;
   }
 
-  /* リスト */
+  /* リスト - モダンなデザイン */
   .md-list {
-    @apply divide-y divide-gray-100;
+    @apply space-y-2;
   }
 
   .md-list-item {
-    @apply flex justify-between items-center p-4 hover:bg-gray-50;
+    @apply flex justify-between items-center p-4 rounded-xl transition-all duration-200;
+    background: rgba(255, 255, 255, 0.5);
   }
 
-  /* スナックバー */
+  .md-list-item:hover {
+    background: rgba(0, 119, 230, 0.05);
+    transform: translateX(4px);
+  }
+
+  /* スナックバー - モダンなデザイン */
   .md-snackbar {
-    @apply fixed bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-3 rounded-md text-white;
-    background-color: #323232;
-    min-width: 280px;
+    @apply fixed bottom-6 left-1/2 transform -translate-x-1/2 px-6 py-4 rounded-2xl text-white font-medium;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    min-width: 320px;
     max-width: 90%;
-    box-shadow: var(--md-elevation-level3);
+    box-shadow: var(--md-elevation-level4);
     z-index: 1000;
+    animation: snackbarSlideUp 0.3s var(--md-motion-easing-emphasized);
+  }
+
+  @keyframes snackbarSlideUp {
+    from {
+      opacity: 0;
+      transform: translate(-50%, 20px);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
   }
 
   .md-snackbar-action {
-    @apply ml-4 text-sm font-medium uppercase;
+    @apply ml-4 text-sm font-bold uppercase;
     color: var(--md-primary-container);
   }
 
-  /* トップアプリバー */
+  /* トップアプリバー - モダンなデザイン */
   .md-top-app-bar {
-    @apply sticky top-0 z-10 w-full h-16 px-4 flex items-center;
-    background-color: var(--md-surface);
+    @apply sticky top-0 z-20 w-full h-20 px-6 flex items-center backdrop-blur-md;
+    background: rgba(255, 255, 255, 0.9);
+    border-bottom: 1px solid var(--md-outline-variant);
     color: var(--md-on-surface);
     box-shadow: var(--md-elevation-level1);
   }
@@ -385,24 +448,73 @@
   }
 
   .md-top-app-bar-title {
-    @apply text-xl font-medium;
+    @apply text-2xl font-bold;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
-  /* ツールチップ */
+  /* ツールチップ - モダンなデザイン */
   .md-tooltip {
-    @apply absolute z-[60] px-3 py-1.5 text-xs text-white rounded opacity-0 transition-opacity duration-200 pointer-events-none whitespace-nowrap; /* z-indexをダイアログより大きく */
-    background-color: #616161;
+    @apply absolute z-[60] px-4 py-2 text-sm font-medium text-white rounded-xl opacity-0 transition-all duration-200 pointer-events-none whitespace-nowrap;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    box-shadow: var(--md-elevation-level3);
     bottom: 100%;
     left: 50%;
-    transform: translateX(-50%) translateY(-4px);
+    transform: translateX(-50%) translateY(-8px);
   }
 
   .md-tooltip-trigger {
-    /* displayプロパティを追加 */
-    @apply relative inline-block; /* ホバー領域確保のため */
+    @apply relative inline-block;
   }
 
   .md-tooltip-trigger:hover .md-tooltip {
     @apply opacity-100;
+    transform: translateX(-50%) translateY(-4px);
+  }
+
+  /* リストアイテムのアニメーション */
+  .list-item-enter {
+    animation: listItemEnter 0.4s var(--md-motion-easing-emphasized);
+  }
+
+  @keyframes listItemEnter {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* スクロールバーのカスタマイズ */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--md-surface-variant);
+    border-radius: var(--md-shape-corner-full);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--md-outline);
+    border-radius: var(--md-shape-corner-full);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--md-on-surface-variant);
+  }
+
+  /* フッター入力エリア - グラスモーフィズム */
+  .footer-input {
+    @apply py-4 px-6 backdrop-blur-xl;
+    background: rgba(255, 255, 255, 0.95);
+    border-top: 1px solid var(--md-outline-variant);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
   }
 }

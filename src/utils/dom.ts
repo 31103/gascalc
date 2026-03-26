@@ -35,7 +35,6 @@ const noRoomAirModeCheckboxElement =
 const addEntryBtnElement = getElementById<HTMLButtonElement>("addEntryBtn");
 const clearAllBtnElement = getElementById<HTMLButtonElement>("clearAllBtn");
 const settingsBtnElement = getElementById<HTMLButtonElement>("settingsBtn");
-// const settingsCloseBtnElement = getElementById<HTMLButtonElement>('settingsCloseBtn'); // 削除
 const settingsCloseBtn2Element =
   getElementById<HTMLButtonElement>("settingsCloseBtn2");
 
@@ -56,19 +55,12 @@ export const noRoomAirModeCheckbox = () => noRoomAirModeCheckboxElement;
 export const addEntryBtn = () => addEntryBtnElement;
 export const clearAllBtn = () => clearAllBtnElement;
 export const settingsBtn = () => settingsBtnElement;
-// export const settingsCloseBtn = () => settingsCloseBtnElement; // 削除
 export const settingsCloseBtn2 = () => settingsCloseBtn2Element;
 
 // --- UI Update Functions ---
 
 /**
  * 入力リストと計算結果リストを更新する
- * @param entriesData 現在のエントリデータ
- * @param fio2Mode 現在のFiO2モード
- * @param noRoomAirMode 現在の室内気不使用モード
- * @param editEntryCallback 修正ボタンクリック時のコールバック
- * @param deleteEntryCallback 削除ボタンクリック時のコールバック
- * @param copyUsageCallback コピーボタンクリック時のコールバック
  */
 export function updateUI(
   entriesData: Entry[],
@@ -78,22 +70,26 @@ export function updateUI(
   deleteEntryCallback: (index: number) => void,
   copyUsageCallback: (oxygen: string, nitrogen: string) => void,
 ): void {
-  const entriesUl = entriesList(); // Accessor returns cached element
-  entriesUl.innerHTML = ""; // 一旦クリア
+  const entriesUl = entriesList();
+  entriesUl.innerHTML = "";
   if (entriesData.length === 0) {
     entriesUl.innerHTML =
-      '<li class="text-center text-[var(--md-on-surface-variant)] py-4 md-body-medium">まだ入力がありません</li>';
+      '<li class="text-center text-[var(--md-on-surface-variant)] py-8 md-body-medium opacity-60">📝 まだ入力がありません</li>';
   } else {
     entriesData.forEach((entry, index) => {
       const li = document.createElement("li");
-      li.className = "md-list-item md-card p-3 mb-2";
-      // ボタンが常に右側に配置されるように修正
+      li.className = "md-list-item list-item-enter";
       li.innerHTML = `
-                <div class="flex items-center justify-between gap-2">
-                    <span class="md-body-large flex-grow">${formatDate(entry.dateTime)} ${entry.flow}L/min${fio2Mode ? ` FiO2:${entry.fio2}%` : ""}</span>
-                    <div class="flex gap-1 flex-shrink-0 ml-auto">
-                        <button class="btn-icon btn-sm" data-index="${index}" data-action="edit" title="修正"><span class="material-symbols-outlined">edit</span></button>
-                        <button class="btn-icon btn-sm text-[var(--md-error)]" data-index="${index}" data-action="delete" title="削除"><span class="material-symbols-outlined">delete</span></button>
+                <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3 flex-grow">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center flex-shrink-0">
+                            <span class="material-symbols-outlined text-blue-600 text-lg">schedule</span>
+                        </div>
+                        <span class="md-body-large font-medium">${formatDate(entry.dateTime)} <span class="text-blue-600 font-bold">${entry.flow}L/min</span>${fio2Mode ? `<span class="text-emerald-600 font-bold"> FiO2:${entry.fio2}%</span>` : ""}</span>
+                    </div>
+                    <div class="flex gap-2 flex-shrink-0">
+                        <button class="btn-icon btn-sm hover:bg-blue-100" data-index="${index}" data-action="edit" title="修正"><span class="material-symbols-outlined">edit</span></button>
+                        <button class="btn-icon btn-sm hover:bg-red-100 text-red-500" data-index="${index}" data-action="delete" title="削除"><span class="material-symbols-outlined">delete</span></button>
                     </div>
                 </div>
             `;
@@ -116,18 +112,18 @@ export function updateUI(
   }
 
   const usageData = calculateUsage(entriesData, fio2Mode, noRoomAirMode);
-  const usageUl = usageList(); // Accessor returns cached element
-  usageUl.innerHTML = ""; // 一旦クリア
+  const usageUl = usageList();
+  usageUl.innerHTML = "";
   const sortedDates = Object.keys(usageData)
     .map(Number)
     .sort((a, b) => a - b);
 
   if (sortedDates.length === 0 && entriesData.length > 0) {
     usageUl.innerHTML =
-      '<li class="text-center text-[var(--md-on-surface-variant)] py-4 md-body-medium">計算中です...</li>';
+      '<li class="text-center text-[var(--md-on-surface-variant)] py-8 md-body-medium opacity-60">⏳ 計算中です...</li>';
   } else if (sortedDates.length === 0) {
     usageUl.innerHTML =
-      '<li class="text-center text-[var(--md-on-surface-variant)] py-4 md-body-medium">入力後に計算結果が表示されます</li>';
+      '<li class="text-center text-[var(--md-on-surface-variant)] py-8 md-body-medium opacity-60">📊 入力後に計算結果が表示されます</li>';
   } else {
     sortedDates.forEach((date) => {
       const amounts = usageData[date];
@@ -141,15 +137,20 @@ export function updateUI(
           : amounts.nitrogen.toFixed(1);
 
       const li = document.createElement("li");
-      li.className = "md-list-item md-card p-3 mb-2";
-      let usageText = `${date}日: 酸素 ${oxygenUsageStr}L`;
+      li.className = "md-list-item list-item-enter";
+      let usageText = `<span class="font-bold text-emerald-600">酸素 ${oxygenUsageStr}L</span>`;
       if (noRoomAirMode && amounts.nitrogen > 0) {
-        usageText += ` / 窒素 ${nitrogenUsageStr}L`;
+        usageText += ` <span class="text-slate-400">/</span> <span class="font-bold text-slate-600">窒素 ${nitrogenUsageStr}L</span>`;
       }
       li.innerHTML = `
-                <div class="flex items-center justify-between gap-2">
-                    <span class="md-body-large flex-grow">${usageText}</span>
-                    <button class="btn-icon btn-sm text-[var(--md-primary)] flex-shrink-0 ml-auto" data-oxygen="${oxygenUsageStr}" data-nitrogen="${nitrogenUsageStr}" data-action="copy" title="コピー"><span class="material-symbols-outlined">content_copy</span></button>
+                <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3 flex-grow">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center flex-shrink-0">
+                            <span class="material-symbols-outlined text-emerald-600 text-lg">gas_meter</span>
+                        </div>
+                        <span class="md-body-large"><span class="font-semibold text-slate-700">${date}日:</span> ${usageText}</span>
+                    </div>
+                    <button class="btn-icon btn-sm primary flex-shrink-0" data-oxygen="${oxygenUsageStr}" data-nitrogen="${nitrogenUsageStr}" data-action="copy" title="コピー"><span class="material-symbols-outlined">content_copy</span></button>
                 </div>
             `;
       usageUl.appendChild(li);
@@ -167,7 +168,6 @@ export function updateUI(
 
 /**
  * エラーメッセージをスナックバーで表示する
- * @param message 表示するメッセージ、または空文字列でクリア
  */
 export function displayError(message: string): void {
   if (!message) {
@@ -178,12 +178,10 @@ export function displayError(message: string): void {
   snackbarText().textContent = message;
   snackbar().classList.remove("hidden");
 
-  // 3秒後に自動的に閉じる
   setTimeout(() => {
     snackbar().classList.add("hidden");
   }, 3000);
 
-  // 閉じるボタンのイベントリスナー
   snackbarAction().onclick = () => {
     snackbar().classList.add("hidden");
   };
@@ -193,29 +191,25 @@ export function displayError(message: string): void {
  * 設定ダイアログの表示/非表示を切り替える
  */
 export function toggleSettings(event?: MouseEvent): void {
-  const overlay = settingsOverlay(); // Accessor returns cached element
+  const overlay = settingsOverlay();
 
-  // イベントが指定され、かつクリックターゲットがオーバーレイ自体である場合のみ閉じる
   if (event && event.target === overlay) {
     overlay.classList.add("hidden");
   } else if (!event) {
-    // イベントが指定されていない場合は単純にトグルする（ボタンクリックなど）
     overlay.classList.toggle("hidden");
   }
-  // ダイアログ内のクリックでは何もしない
 }
 
 /**
- * FiO2モードのトグル処理
- * @param clearAllCallback 全クリア処理のコールバック
+ * FiO2 モードのトグル処理
  */
 export function handleFio2ModeToggle(clearAllCallback: () => void): boolean {
-  const isChecked = fio2ModeCheckbox().checked; // Accessor returns cached element
-  fio2InputGroup().classList.toggle("hidden", !isChecked); // Accessor returns cached element
-  noRoomAirModeCheckbox().disabled = !isChecked; // Accessor returns cached element
+  const isChecked = fio2ModeCheckbox().checked;
+  fio2InputGroup().classList.toggle("hidden", !isChecked);
+  noRoomAirModeCheckbox().disabled = !isChecked;
 
   if (!isChecked) {
-    noRoomAirModeCheckbox().checked = false; // Accessor returns cached element
+    noRoomAirModeCheckbox().checked = false;
   }
 
   clearAllCallback();
@@ -224,12 +218,11 @@ export function handleFio2ModeToggle(clearAllCallback: () => void): boolean {
 
 /**
  * 室内気不使用モードのトグル処理
- * @param clearAllCallback 全クリア処理のコールバック
  */
 export function handleNoRoomAirModeToggle(
   clearAllCallback: () => void,
 ): boolean {
-  const isChecked = noRoomAirModeCheckbox().checked; // Accessor returns cached element
+  const isChecked = noRoomAirModeCheckbox().checked;
   clearAllCallback();
   return isChecked;
 }
@@ -238,34 +231,29 @@ export function handleNoRoomAirModeToggle(
  * 入力フィールドをクリアする
  */
 export function clearInputFields(): void {
-  dateTimeInput().value = ""; // Accessor returns cached element
-  flowInput().value = ""; // Accessor returns cached element
-  fio2Input().value = ""; // Accessor returns cached element
+  dateTimeInput().value = "";
+  flowInput().value = "";
+  fio2Input().value = "";
   displayError("");
-  dateTimeInput().focus(); // Accessor returns cached element
+  dateTimeInput().focus();
 }
 
 /**
  * 指定されたエントリの内容を入力フィールドに設定する (修正用)
- * @param entry 編集するエントリ
- * @param fio2Mode 現在のFiO2モード
  */
 export function populateInputFieldsForEdit(
   entry: Entry,
   fio2Mode: boolean,
 ): void {
-  dateTimeInput().value = formatDateForInput(entry.dateTime); // Accessor returns cached element
-  flowInput().value = String(entry.flow); // Accessor returns cached element
+  dateTimeInput().value = formatDateForInput(entry.dateTime);
+  flowInput().value = String(entry.flow);
   if (fio2Mode) {
-    fio2Input().value = String(entry.fio2); // Accessor returns cached element
+    fio2Input().value = String(entry.fio2);
   }
 }
 
 /**
  * 計算結果をクリップボードにコピーする
- * @param oxygenUsage 酸素使用量 (文字列)
- * @param nitrogenUsage 窒素使用量 (文字列)
- * @param noRoomAirMode 室内気不使用モードが有効か
  */
 export function copyUsageToClipboard(
   oxygenUsage: string,
@@ -279,11 +267,10 @@ export function copyUsageToClipboard(
   navigator.clipboard
     .writeText(text)
     .then(() => {
-      // コピー成功時のフィードバック
-      displayError("クリップボードにコピーしました");
+      displayError("✅ クリップボードにコピーしました");
     })
     .catch((err) => {
-      console.error("コピーに失敗しました: ", err);
-      displayError("クリップボードへのコピーに失敗しました");
+      console.error("コピーに失敗しました：", err);
+      displayError("❌ クリップボードへのコピーに失敗しました");
     });
 }
