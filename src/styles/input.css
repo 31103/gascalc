@@ -145,9 +145,15 @@
   color: var(--md-on-surface);
 }
 
+:root.dark .input-field:hover {
+  border-color: var(--md-outline-variant);
+}
+
 :root.dark .input-field:focus {
   background: rgba(30, 41, 59, 0.9);
   border-color: var(--md-primary);
+  border-width: 2px;
+  padding: calc(1rem - 1px) calc(0.75rem - 1px) calc(0.5rem - 1px);
 }
 
 :root.dark .input-field:focus ~ .input-field-label,
@@ -493,43 +499,44 @@
 
   .input-field {
     @apply w-full px-4 py-3 text-base bg-white/80 backdrop-blur-sm transition-all duration-300;
-    border: 2px solid var(--md-outline-variant);
-    border-radius: var(--md-shape-corner-medium);
+    border: 1px solid var(--md-outline);
+    border-radius: var(--md-shape-corner-small);
     color: var(--md-on-surface);
-    padding-top: calc(0.75rem + 1px);
-    padding-bottom: calc(0.75rem + 1px);
+    outline: none;
+  }
+
+  .input-field:hover {
+    border-color: var(--md-on-surface-variant);
   }
 
   .input-field:focus {
-    @apply outline-none;
     border-color: var(--md-primary);
     border-width: 2px;
-    background: white;
-    box-shadow: 0 0 0 4px rgba(0, 119, 230, 0.1);
-    padding-top: 1rem;
-    padding-bottom: 0.5rem;
+    padding: calc(1rem - 1px) calc(0.75rem - 1px) calc(0.5rem - 1px);
   }
 
   .input-field-label {
-    @apply absolute left-4 top-3 text-sm font-medium transition-all duration-300 pointer-events-none;
+    @apply absolute left-4 top-3 text-sm transition-all duration-200 pointer-events-none;
     color: var(--md-on-surface-variant);
+    padding: 0 4px;
+    background: transparent;
   }
 
   .input-field:focus ~ .input-field-label,
   .input-field:not(:placeholder-shown) ~ .input-field-label {
-    @apply text-xs font-semibold transform -translate-y-3;
+    @apply text-xs font-medium transform -translate-y-6;
     color: var(--md-primary);
-    background: white;
-    padding: 0 4px;
+    background: var(--md-surface);
+    border-radius: 2px;
   }
 
   .input-field-helper {
-    @apply mt-2 text-xs font-medium;
+    @apply mt-1 text-xs;
     color: var(--md-on-surface-variant);
   }
 
   .input-field-error {
-    @apply mt-2 text-xs font-medium;
+    @apply mt-1 text-xs;
     color: var(--md-error);
   }
 
