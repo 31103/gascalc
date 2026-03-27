@@ -71,100 +71,83 @@
   --md-motion-easing-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
-/* ダークモード */
+/* ダークモード - ハイコントラスト版 */
 :root.dark {
-  --md-primary: #4da3ff;
-  --md-on-primary: #003d7a;
-  --md-primary-container: #0056a8;
-  --md-on-primary-container: #d0e7ff;
+  --md-primary: #60a5fa;
+  --md-on-primary: #0c1f3a;
+  --md-primary-container: #1e3a5f;
+  --md-on-primary-container: #bfdbfe;
 
-  --md-secondary: #bac7db;
-  --md-on-secondary: #253140;
-  --md-secondary-container: #3b4857;
-  --md-on-secondary-container: #d7e3f7;
+  --md-secondary: #94a3b8;
+  --md-on-secondary: #0f172a;
+  --md-secondary-container: #334155;
+  --md-on-secondary-container: #e2e8f0;
 
-  --md-tertiary: #d3befc;
-  --md-on-tertiary: #382960;
-  --md-tertiary-container: #4f3f70;
-  --md-on-tertiary-container: #f2daff;
+  --md-tertiary: #c4b5fd;
+  --md-on-tertiary: #1e1b4b;
+  --md-tertiary-container: #4c1d95;
+  --md-on-tertiary-container: #ede9fe;
 
-  --md-error: #ffb4ab;
-  --md-on-error: #690005;
-  --md-error-container: #93000a;
-  --md-on-error-container: #ffdad6;
+  --md-error: #fca5a5;
+  --md-on-error: #450a0a;
+  --md-error-container: #7f1d1d;
+  --md-on-error-container: #fecaca;
 
   --md-success: #4ade80;
-  --md-on-success: #003d25;
-  --md-success-container: #005637;
-  --md-on-success-container: #d4f5e1;
+  --md-on-success: #052e16;
+  --md-success-container: #14532d;
+  --md-on-success-container: #dcfce7;
 
-  --md-background: #0f172a;
-  --md-on-background: #e2e8f0;
-  --md-surface: #1e293b;
-  --md-on-surface: #e2e8f0;
+  --md-background: #020617;
+  --md-on-background: #f1f5f9;
+  --md-surface: #0f172a;
+  --md-on-surface: #f1f5f9;
 
-  --md-surface-variant: #334155;
-  --md-on-surface-variant: #cbd5e1;
+  --md-surface-variant: #1e293b;
+  --md-on-surface-variant: #e2e8f0;
   --md-outline: #64748b;
   --md-outline-variant: #475569;
 
-  --glass-bg: rgba(30, 41, 59, 0.85);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --glass-bg: rgba(15, 23, 42, 0.9);
+  --glass-border: rgba(100, 116, 139, 0.3);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 
-  --gradient-surface: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  --gradient-surface: linear-gradient(180deg, #0f172a 0%, #020617 100%);
 }
 
 :root.dark body {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
-}
-
-:root.dark .md-list-item {
-  background: rgba(51, 65, 85, 0.5);
-}
-
-:root.dark .input-field {
-  background: rgba(51, 65, 85, 0.5);
-}
-
-:root.dark .input-field:focus ~ .input-field-label,
-:root.dark .input-field:not(:placeholder-shown) ~ .input-field-label {
-  background: var(--md-surface);
-}
-
-:root.dark .btn-icon {
-  background: rgba(51, 65, 85, 0.5);
-}
-
-:root.dark .btn-icon:hover {
-  background: rgba(77, 163, 255, 0.15);
+  background: linear-gradient(135deg, #020617 0%, #0f172a 50%, #020617 100%);
 }
 
 :root.dark .md-card {
-  background: rgba(30, 41, 59, 0.7);
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(100, 116, 139, 0.4);
 }
 
 :root.dark .md-dialog {
   background: var(--md-surface);
+  border: 1px solid var(--md-outline-variant);
 }
 
 :root.dark .md-top-app-bar {
-  background: rgba(30, 41, 59, 0.95);
-  border-bottom-color: var(--md-outline-variant);
+  background: rgba(15, 23, 42, 0.98);
+  border-bottom: 1px solid var(--md-outline-variant);
 }
 
 :root.dark .footer-input {
-  background: rgba(30, 41, 59, 0.95);
-  border-top-color: var(--md-outline-variant);
+  background: rgba(15, 23, 42, 0.98);
+  border-top: 1px solid var(--md-outline-variant);
 }
 
 :root.dark .input-field {
-  background: rgba(51, 65, 85, 0.5);
+  background: rgba(30, 41, 59, 0.6);
+  border-color: var(--md-outline);
   color: var(--md-on-surface);
 }
 
 :root.dark .input-field:focus {
-  background: rgba(51, 65, 85, 0.8);
+  background: rgba(30, 41, 59, 0.9);
+  border-color: var(--md-primary);
 }
 
 :root.dark .input-field:focus ~ .input-field-label,
@@ -177,13 +160,132 @@
   color: var(--md-on-surface-variant);
 }
 
-:root.dark .btn-icon {
-  background: rgba(51, 65, 85, 0.5);
+:root.dark .input-field-helper {
   color: var(--md-on-surface-variant);
 }
 
+:root.dark .btn-icon {
+  background: rgba(30, 41, 59, 0.6);
+  color: var(--md-on-surface);
+}
+
+:root.dark .btn-icon:hover {
+  background: rgba(96, 165, 250, 0.2);
+  color: var(--md-primary);
+}
+
+:root.dark .btn-icon.primary {
+  background: var(--gradient-primary);
+  color: white;
+  box-shadow: 0 4px 14px rgba(96, 165, 250, 0.4);
+}
+
+:root.dark .btn-text {
+  color: var(--md-primary);
+}
+
 :root.dark .md-list-item {
-  background: rgba(51, 65, 85, 0.5);
+  background: rgba(30, 41, 59, 0.5);
+}
+
+:root.dark .md-list-item:hover {
+  background: rgba(30, 41, 59, 0.8);
+}
+
+:root.dark .md-snackbar {
+  background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+}
+
+:root.dark .md-switch-track {
+  background: var(--md-outline);
+}
+
+:root.dark .md-switch-thumb {
+  background: var(--md-outline-variant);
+}
+
+:root.dark .md-dialog-title {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+:root.dark .md-top-app-bar-title {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Icon container styling for dark mode */
+:root.dark .bg-gradient-to-br.from-blue-500.to-cyan-400 {
+  background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+}
+
+:root.dark .bg-gradient-to-br.from-emerald-500.to-teal-400 {
+  background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
+}
+
+:root.dark .from-blue-50\/50.to-cyan-50\/50 {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(6, 182, 212, 0.2) 100%);
+}
+
+:root.dark .from-emerald-50\/50.to-teal-50\/50 {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(20, 184, 166, 0.2) 100%);
+}
+
+:root.dark .bg-blue-100 {
+  background-color: rgba(59, 130, 246, 0.3);
+}
+
+:root.dark .bg-emerald-100 {
+  background-color: rgba(16, 185, 129, 0.3);
+}
+
+:root.dark .text-blue-600 {
+  color: #60a5fa;
+}
+
+:root.dark .text-emerald-600 {
+  color: #4ade80;
+}
+
+:root.dark .text-slate-700 {
+  color: #e2e8f0;
+}
+
+:root.dark .text-slate-400 {
+  color: #94a3b8;
+}
+
+:root.dark .text-slate-600 {
+  color: #cbd5e1;
+}
+
+:root.dark .bg-gradient-to-b.from-white\/50.to-blue-50\/30 {
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.5) 0%, rgba(30, 41, 59, 0.3) 100%);
+}
+
+:root.dark .bg-gradient-to-b.from-white\/50.to-emerald-50\/30 {
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.5) 0%, rgba(30, 41, 59, 0.3) 100%);
+}
+
+:root.dark .text-\[var\(--md-on-surface-variant\)\] {
+  color: var(--md-on-surface-variant);
+}
+
+:root.dark .opacity-60 {
+  opacity: 0.8;
+}
+
+:root.dark ::placeholder {
+  color: var(--md-on-surface-variant);
+  opacity: 0.7;
+}
+
+:root.dark .footer-input .input-field-label {
+  color: var(--md-on-surface-variant);
 }
 
 /* タイポグラフィ */
