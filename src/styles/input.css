@@ -633,8 +633,7 @@
   }
 
   .md-switch-input:focus ~ .md-switch-track {
-    @apply ring-4;
-    ring-color: rgba(0, 119, 230, 0.2);
+    @apply ring-4 ring-blue-500/20;
   }
 
   .md-switch-input:disabled ~ .md-switch-track,

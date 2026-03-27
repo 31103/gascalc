@@ -233,7 +233,6 @@ export function updateUI(
         copyBtn.addEventListener("click", (e) => {
           e.preventDefault();
           e.stopPropagation();
-          console.log("Copy button clicked:", oxygenUsageStr, nitrogenUsageStr);
           copyUsageCallback(oxygenUsageStr, nitrogenUsageStr);
         });
       }
@@ -337,20 +336,6 @@ export function clearInputFields(): void {
   fio2Input().value = "";
   displayError("");
   dateTimeInput().focus();
-}
-
-/**
- * 指定されたエントリの内容を入力フィールドに設定する (修正用)
- */
-export function populateInputFieldsForEdit(
-  entry: Entry,
-  fio2Mode: boolean,
-): void {
-  dateTimeInput().value = formatDateForInput(entry.dateTime);
-  flowInput().value = String(entry.flow);
-  if (fio2Mode) {
-    fio2Input().value = String(entry.fio2);
-  }
 }
 
 /**
