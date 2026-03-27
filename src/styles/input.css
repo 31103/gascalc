@@ -140,34 +140,31 @@
 }
 
 :root.dark .input-field {
-  background: rgba(30, 41, 59, 0.6);
-  border-color: var(--md-outline);
+  @apply bg-gray-800/60 border-gray-600;
   color: var(--md-on-surface);
 }
 
 :root.dark .input-field:hover {
-  border-color: var(--md-outline-variant);
+  @apply border-gray-500;
 }
 
 :root.dark .input-field:focus {
-  background: rgba(30, 41, 59, 0.9);
-  border-color: var(--md-primary);
-  border-width: 2px;
-  padding: calc(1rem - 1px) calc(0.75rem - 1px) calc(0.5rem - 1px);
+  @apply border-blue-500 ring-blue-500/30;
+  border-width: 1px;
+}
+
+:root.dark .input-field-label {
+  @apply text-gray-400;
 }
 
 :root.dark .input-field:focus ~ .input-field-label,
 :root.dark .input-field:not(:placeholder-shown) ~ .input-field-label {
+  @apply text-blue-400;
   background: var(--md-surface);
-  color: var(--md-primary);
-}
-
-:root.dark .input-field-label {
-  color: var(--md-on-surface-variant);
 }
 
 :root.dark .input-field-helper {
-  color: var(--md-on-surface-variant);
+  @apply text-gray-400;
 }
 
 :root.dark .btn-icon {
@@ -492,17 +489,14 @@
     transform: scale(1.05) translateY(-2px);
   }
 
-  /* 入力フィールド - モダンなデザイン */
+  /* 入力フィールド - Tailwind CSS Best Practices */
   .input-field-container {
     @apply relative mb-4;
   }
 
   .input-field {
-    @apply w-full px-4 py-3 text-base bg-white/80 backdrop-blur-sm transition-all duration-300;
-    border: 1px solid var(--md-outline);
-    border-radius: var(--md-shape-corner-small);
+    @apply w-full px-4 py-3 text-base bg-white/80 backdrop-blur-sm border border-gray-300 rounded-lg outline-none transition-all duration-200;
     color: var(--md-on-surface);
-    outline: none;
   }
 
   .input-field:hover {
@@ -510,24 +504,23 @@
   }
 
   .input-field:focus {
-    border-color: var(--md-primary);
-    border-width: 2px;
-    padding: calc(1rem - 1px) calc(0.75rem - 1px) calc(0.5rem - 1px);
+    @apply border-blue-500 ring-2 ring-blue-500/20;
+    border-width: 1px;
   }
 
   .input-field-label {
-    @apply absolute left-4 top-3 text-sm transition-all duration-200 pointer-events-none;
-    color: var(--md-on-surface-variant);
-    padding: 0 4px;
+    @apply absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 transition-all duration-200 pointer-events-none;
     background: transparent;
+    transform-origin: left top;
   }
 
+  /* Floating label when focused or has value */
   .input-field:focus ~ .input-field-label,
   .input-field:not(:placeholder-shown) ~ .input-field-label {
-    @apply text-xs font-medium transform -translate-y-6;
+    @apply text-xs top-2 -translate-y-1/2 font-medium;
     color: var(--md-primary);
     background: var(--md-surface);
-    border-radius: 2px;
+    padding: 0 4px;
   }
 
   .input-field-helper {
