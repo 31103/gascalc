@@ -140,17 +140,20 @@
 }
 
 :root.dark .input-field {
-  @apply bg-gray-800/60 border-gray-600;
+  @apply bg-transparent;
+  border-color: var(--md-outline);
   color: var(--md-on-surface);
 }
 
 :root.dark .input-field:hover {
-  @apply border-gray-500;
+  border-color: var(--md-outline-variant);
 }
 
 :root.dark .input-field:focus {
-  @apply border-blue-500 ring-blue-500/30;
-  border-width: 1px;
+  @apply border-2;
+  border-color: var(--md-primary);
+  padding-top: calc(1.25rem - 1px);
+  padding-bottom: calc(0.5rem - 1px);
 }
 
 :root.dark .input-field-label {
@@ -489,13 +492,14 @@
     transform: scale(1.05) translateY(-2px);
   }
 
-  /* 入力フィールド - Tailwind CSS Best Practices */
+  /* 入力フィールド - Material Design 3 Outlined Text Field */
   .input-field-container {
-    @apply relative mb-4;
+    @apply relative;
   }
 
   .input-field {
-    @apply w-full px-4 py-3 text-base bg-white/80 backdrop-blur-sm border border-gray-300 rounded-lg outline-none transition-all duration-200;
+    @apply w-full px-4 pt-5 pb-2 text-base bg-transparent border rounded-lg outline-none transition-all duration-200;
+    border: 1px solid var(--md-outline);
     color: var(--md-on-surface);
   }
 
@@ -504,23 +508,28 @@
   }
 
   .input-field:focus {
-    @apply border-blue-500 ring-2 ring-blue-500/20;
-    border-width: 1px;
+    @apply border-2;
+    border-color: var(--md-primary);
+    padding-top: calc(1.25rem - 1px); /* 1px border diff compensation */
+    padding-bottom: calc(0.5rem - 1px);
   }
 
   .input-field-label {
-    @apply absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 transition-all duration-200 pointer-events-none;
+    @apply absolute left-4 text-sm transition-all duration-200 pointer-events-none;
+    top: 1rem;
+    color: var(--md-on-surface-variant);
     background: transparent;
-    transform-origin: left top;
+    padding: 0 4px;
   }
 
   /* Floating label when focused or has value */
   .input-field:focus ~ .input-field-label,
   .input-field:not(:placeholder-shown) ~ .input-field-label {
-    @apply text-xs top-2 -translate-y-1/2 font-medium;
+    @apply text-xs font-medium;
+    top: 0;
+    transform: translateY(-50%);
     color: var(--md-primary);
     background: var(--md-surface);
-    padding: 0 4px;
   }
 
   .input-field-helper {
