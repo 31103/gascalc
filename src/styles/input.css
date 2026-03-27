@@ -140,6 +140,52 @@
   background: rgba(77, 163, 255, 0.15);
 }
 
+:root.dark .md-card {
+  background: rgba(30, 41, 59, 0.7);
+}
+
+:root.dark .md-dialog {
+  background: var(--md-surface);
+}
+
+:root.dark .md-top-app-bar {
+  background: rgba(30, 41, 59, 0.95);
+  border-bottom-color: var(--md-outline-variant);
+}
+
+:root.dark .footer-input {
+  background: rgba(30, 41, 59, 0.95);
+  border-top-color: var(--md-outline-variant);
+}
+
+:root.dark .input-field {
+  background: rgba(51, 65, 85, 0.5);
+  color: var(--md-on-surface);
+}
+
+:root.dark .input-field:focus {
+  background: rgba(51, 65, 85, 0.8);
+}
+
+:root.dark .input-field:focus ~ .input-field-label,
+:root.dark .input-field:not(:placeholder-shown) ~ .input-field-label {
+  background: var(--md-surface);
+  color: var(--md-primary);
+}
+
+:root.dark .input-field-label {
+  color: var(--md-on-surface-variant);
+}
+
+:root.dark .btn-icon {
+  background: rgba(51, 65, 85, 0.5);
+  color: var(--md-on-surface-variant);
+}
+
+:root.dark .md-list-item {
+  background: rgba(51, 65, 85, 0.5);
+}
+
 /* タイポグラフィ */
 @layer base {
   html {
