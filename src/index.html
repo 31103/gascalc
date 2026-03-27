@@ -7,7 +7,7 @@
     <title>ガス使用量計算ツール</title>
     <!-- TailwindCSS はビルド時にここにインライン展開されます -->
     <style>
-        /* フォントの定義 - ビルド時にインライン化されるCSSとは別に記述 */
+        /* フォントの定義 - ビルド時にインライン化される CSS とは別に記述 */
         @font-face {
             font-family: 'Roboto';
             font-style: normal;
@@ -40,11 +40,14 @@
     <link href="./assets/fonts/material-symbols.css" rel="stylesheet">
 </head>
 
-<body class="bg-[var(--md-background)] text-[var(--md-on-background)] min-h-screen overflow-y-auto">
+<body class="bg-gradient-to-br from-slate-50 via-blue-50/30 to-cyan-50/20 text-[var(--md-on-background)] min-h-screen overflow-y-auto">
     <!-- トップアプリバー -->
     <header class="md-top-app-bar">
         <div class="md-top-app-bar-row">
-            <div class="flex items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center shadow-lg">
+                    <span class="material-symbols-outlined text-white text-xl">air</span>
+                </div>
                 <h1 class="md-top-app-bar-title">ガス使用量計算</h1>
             </div>
             <div class="flex items-center gap-2">
@@ -63,19 +66,29 @@
         <div id="error" class="hidden"></div>
 
         <!-- メインコンテンツ -->
-        <div class="md-card md-card-elevated p-6">
-            <section class="mb-6">
-                <h2 class="md-headline-small mb-3">入力内容</h2>
-                <ul id="entries" class="md-list max-h-60 overflow-y-auto rounded-lg bg-[var(--md-surface-variant)/0.2] p-2">
-                    <!-- 入力内容はJSで動的に追加 -->
+        <div class="md-card md-card-elevated p-8">
+            <section class="mb-8">
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white text-lg">list_alt</span>
+                    </div>
+                    <h2 class="md-headline-small">入力内容</h2>
+                </div>
+                <ul id="entries" class="md-list max-h-60 overflow-y-auto rounded-2xl bg-gradient-to-b from-white/50 to-blue-50/30 dark:from-gray-800/50 dark:to-gray-900/30 p-3">
+                    <!-- 入力内容は JS で動的に追加 -->
                     <li class="text-center text-[var(--md-on-surface-variant)] py-4 md-body-medium">まだ入力がありません</li>
                 </ul>
             </section>
 
             <section>
-                <h2 class="md-headline-small mb-3">ガス使用量 (日別)</h2>
-                <ul id="usage" class="md-list rounded-lg bg-[var(--md-surface-variant)/0.2] p-2 min-h-[50px]">
-                    <!-- 計算結果はJSで動的に追加 -->
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-400 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white text-lg">analytics</span>
+                    </div>
+                    <h2 class="md-headline-small">ガス使用量 (日別)</h2>
+                </div>
+                <ul id="usage" class="md-list rounded-2xl bg-gradient-to-b from-white/50 to-emerald-50/30 dark:from-gray-800/50 dark:to-gray-900/30 p-3 min-h-[50px]">
+                    <!-- 計算結果は JS で動的に追加 -->
                     <li class="text-center text-[var(--md-on-surface-variant)] py-4 md-body-medium">入力後に計算結果が表示されます</li>
                 </ul>
             </section>
@@ -87,15 +100,30 @@
         <div class="md-dialog">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="md-dialog-title">設定</h2>
-                <!-- <button id="settingsCloseBtn" class="btn-icon">✕</button> --> <!-- 右上の閉じるボタンを削除 -->
             </div>
-            <div class="md-dialog-content space-y-6">
-                <div class="flex items-center justify-between">
+            <div class="md-dialog-content space-y-4">
+                <div class="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-blue-50/50 to-cyan-50/50 dark:from-blue-900/30 dark:to-cyan-900/30">
+                    <label for="darkMode" class="md-body-large flex items-center cursor-pointer">
+                        <span class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-blue-500 dark:text-blue-400">dark_mode</span>
+                            ダークモード
+                        </span>
+                    </label>
+                    <div class="md-switch">
+                        <input type="checkbox" id="darkMode" class="md-switch-input">
+                        <div class="md-switch-track"></div>
+                        <div class="md-switch-thumb"></div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-blue-50/50 to-cyan-50/50 dark:from-blue-900/30 dark:to-cyan-900/30">
                     <label for="fio2Mode" class="md-body-large flex items-center cursor-pointer">
-                        FiO2モード
+                        <span class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-blue-500 dark:text-blue-400">air_purifier</span>
+                            FiO2 モード
+                        </span>
                         <span class="md-tooltip-trigger ml-2">
-                            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[var(--md-surface-variant)] text-[var(--md-on-surface-variant)] text-xs">?</span>
-                            <span class="md-tooltip w-64">FiO2を指定して計算 (ハイフロー/人工呼吸器用)</span>
+                            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 text-xs font-bold">?</span>
+                            <span class="md-tooltip w-64">FiO2 を指定して計算 (ハイフロー/人工呼吸器用)</span>
                         </span>
                     </label>
                     <div class="md-switch">
@@ -104,12 +132,15 @@
                         <div class="md-switch-thumb"></div>
                     </div>
                 </div>
-                <div class="flex items-center justify-between">
+                <div class="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-emerald-50/50 to-teal-50/50 dark:from-emerald-900/30 dark:to-teal-900/30">
                     <label for="noRoomAirMode" class="md-body-large flex items-center cursor-pointer">
-                        室内気不使用
+                        <span class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-emerald-500 dark:text-emerald-400">ventilator</span>
+                            室内気不使用
+                        </span>
                         <span class="md-tooltip-trigger ml-2">
-                            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[var(--md-surface-variant)] text-[var(--md-on-surface-variant)] text-xs">?</span>
-                            <span class="md-tooltip w-64">医療ガスのみ使用 (一部の人工呼吸器用)<br>※FiO2モード有効時のみ</span>
+                            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900 text-emerald-600 dark:text-emerald-300 text-xs font-bold">?</span>
+                            <span class="md-tooltip w-64">医療ガスのみ使用 (一部の人工呼吸器用)<br>※FiO2 モード有効時のみ</span>
                         </span>
                     </label>
                     <div class="md-switch">
@@ -120,13 +151,13 @@
                 </div>
             </div>
             <div class="md-dialog-actions">
-                <button id="settingsCloseBtn2" class="btn btn-text">閉じる</button>
+                <button id="settingsCloseBtn2" class="btn btn-primary">閉じる</button>
             </div>
         </div>
     </div>
 
     <!-- フッター入力エリア -->
-    <footer class="fixed bottom-0 left-0 right-0 bg-[var(--md-surface)] py-3 px-4 sm:py-4 sm:px-6 shadow-lg border-t border-[var(--md-outline-variant)]">
+    <footer class="footer-input fixed bottom-0 left-0 right-0">
         <div class="container mx-auto max-w-3xl">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-3">
                 <div class="flex flex-col sm:flex-row sm:items-end gap-3 w-full sm:w-auto">
@@ -136,19 +167,19 @@
                         <div class="input-field-helper flex items-center">
                             DDHHMM
                             <span class="md-tooltip-trigger ml-1">
-                                <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[var(--md-surface-variant)] text-[var(--md-on-surface-variant)] text-[10px]">?</span>
-                                <span class="md-tooltip">例: 020907<br>日付省略可</span>
+                                <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-100 text-blue-600 text-[10px] font-bold">?</span>
+                                <span class="md-tooltip">例：020907<br>日付省略可</span>
                             </span>
                         </div>
                     </div>
                     <div class="input-field-container mb-0 flex-grow sm:flex-grow-0 sm:w-28">
                         <input type="text" id="flow" placeholder=" " class="input-field w-full">
-                        <label for="flow" class="input-field-label">流量(L/min)</label>
+                        <label for="flow" class="input-field-label">流量 (L/min)</label>
                         <div class="input-field-helper flex items-center">
                             数値
                             <span class="md-tooltip-trigger ml-1">
-                                <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[var(--md-surface-variant)] text-[var(--md-on-surface-variant)] text-[10px]">?</span>
-                                <span class="md-tooltip">例: 1.5</span>
+                                <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-100 text-blue-600 text-[10px] font-bold">?</span>
+                                <span class="md-tooltip">例：1.5</span>
                             </span>
                         </div>
                     </div>
@@ -158,14 +189,14 @@
                         <div class="input-field-helper flex items-center">
                             21-100
                             <span class="md-tooltip-trigger ml-1">
-                                <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[var(--md-surface-variant)] text-[var(--md-on-surface-variant)] text-[10px]">?</span>
-                                <span class="md-tooltip">21-100の整数</span>
+                                <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-100 text-blue-600 text-[10px] font-bold">?</span>
+                                <span class="md-tooltip">21-100 の整数</span>
                             </span>
                         </div>
                     </div>
                 </div>
-                <button id="addEntryBtn" class="btn-icon bg-[var(--md-primary)] text-[var(--md-on-primary)] w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0 shadow-md hover:shadow-lg transition-shadow mt-2 sm:mt-0" title="追加">
-                    <span class="material-symbols-outlined text-2xl sm:text-3xl">add</span>
+                <button id="addEntryBtn" class="btn-icon primary w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 mt-2 sm:mt-0" title="追加">
+                    <span class="material-symbols-outlined text-3xl">add</span>
                 </button>
             </div>
         </div>

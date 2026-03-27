@@ -72,6 +72,19 @@ npm run lint:fix  # Lint 自動修正
 npm run format    # Format
 ```
 
+### 自動フォーマット
+
+このプロジェクトでは、コミット前に自動でフォーマットとテストが実行されます（pre-commit hook）。
+
+**VS Code を使用している場合:**
+- `.vscode/settings.json` でフォーマット設定が有効になっています
+- 「Format On Save」を有効にすると、保存時に自動でフォーマットされます
+- Biome 拡張機能のインストールを推奨します
+
+**pre-commit hook:**
+- コミット時に `npm run format` と `npm test` が自動実行されます
+- フォーマットエラーまたはテスト失敗時はコミットがブロックされます
+
 ## リリース
 
 リリースは自動で行われます。Conventional Commits に従ってコミットすると、[release-please](https://github.com/googleapis/release-please) が自動的にリリース PR を作成します。
