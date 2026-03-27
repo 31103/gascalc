@@ -106,12 +106,19 @@ function validateAndParseEntry(
     }
     parsedFio2 = parseInt(fio2Str, 10);
     if (Number.isNaN(parsedFio2) || parsedFio2 < 21 || parsedFio2 > 100) {
-      displayError("無効な FiO2 です。21 以上 100 以下の整数を入力してください。");
+      displayError(
+        "無効な FiO2 です。21 以上 100 以下の整数を入力してください。",
+      );
       return null;
     }
   }
   displayError("");
-  return { dateTime: parsedDateTime, flow: parsedFlow, fio2: parsedFio2, editing: false };
+  return {
+    dateTime: parsedDateTime,
+    flow: parsedFlow,
+    fio2: parsedFio2,
+    editing: false,
+  };
 }
 
 /**
@@ -183,7 +190,12 @@ function handleEditEntry(index: number): void {
 /**
  * 編集を保存する
  */
-function saveEditEntry(index: number, dateTimeStr: string, flowStr: string, fio2Str?: string): void {
+function saveEditEntry(
+  index: number,
+  dateTimeStr: string,
+  flowStr: string,
+  fio2Str?: string,
+): void {
   if (index >= 0 && index < entries.length) {
     const newEntry = validateAndParseEntry(
       dateTimeStr,
@@ -191,15 +203,15 @@ function saveEditEntry(index: number, dateTimeStr: string, flowStr: string, fio2
       fio2Str || "",
       fio2Mode,
     );
-    
+
     if (newEntry) {
       entries[index] = newEntry;
       entries.sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime());
-      
+
       if (entries.length > 0) {
         lastDate = entries[entries.length - 1].dateTime;
       }
-      
+
       refreshUI();
       displayError("✅ 編集を保存しました");
     }
@@ -239,7 +251,7 @@ function handleCopyUsage(oxygen: string, nitrogen: string): void {
 function initialize(): void {
   // ダークモードの初期化
   initializeDarkMode();
-  
+
   refreshUI();
 
   addEntryBtn().addEventListener("click", addEntry);
@@ -250,8 +262,9 @@ function initialize(): void {
   snackbarAction().addEventListener("click", () => displayError(""));
 
   // ダークモードのトグル
-  const darkModeSwitch =
-    document.getElementById("darkMode")?.parentElement?.closest(".md-switch");
+  const darkModeSwitch = document
+    .getElementById("darkMode")
+    ?.parentElement?.closest(".md-switch");
   if (darkModeSwitch) {
     darkModeSwitch.addEventListener("click", () => {
       document.getElementById("darkMode")?.click();

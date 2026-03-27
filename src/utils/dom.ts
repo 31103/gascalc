@@ -32,8 +32,7 @@ const settingsOverlayElement =
 const fio2ModeCheckboxElement = getElementById<HTMLInputElement>("fio2Mode");
 const noRoomAirModeCheckboxElement =
   getElementById<HTMLInputElement>("noRoomAirMode");
-const darkModeCheckboxElement =
-  getElementById<HTMLInputElement>("darkMode");
+const darkModeCheckboxElement = getElementById<HTMLInputElement>("darkMode");
 const addEntryBtnElement = getElementById<HTMLButtonElement>("addEntryBtn");
 const clearAllBtnElement = getElementById<HTMLButtonElement>("clearAllBtn");
 const settingsBtnElement = getElementById<HTMLButtonElement>("settingsBtn");
@@ -72,7 +71,12 @@ export function updateUI(
   editEntryCallback: (index: number) => void,
   deleteEntryCallback: (index: number) => void,
   copyUsageCallback: (oxygen: string, nitrogen: string) => void,
-  saveEditCallback?: (index: number, dateTime: string, flow: string, fio2?: string) => void,
+  saveEditCallback?: (
+    index: number,
+    dateTime: string,
+    flow: string,
+    fio2?: string,
+  ) => void,
   cancelEditCallback?: () => void,
 ): void {
   const entriesUl = entriesList();
@@ -85,7 +89,7 @@ export function updateUI(
       const li = document.createElement("li");
       li.className = "md-list-item list-item-enter";
       const dateStr = entry.dateTime.getTime();
-      
+
       // 編集中の場合は入力フォームを表示、そうでなければ通常表示
       if (entry.editing) {
         // 編集中のフォーム
@@ -101,12 +105,16 @@ export function updateUI(
                 <input type="text" id="edit-flow-${dateStr}" placeholder=" " class="input-field w-full" value="${entry.flow}">
                 <label class="input-field-label">流量 (L/min)</label>
               </div>
-              ${fio2Mode ? `
+              ${
+                fio2Mode
+                  ? `
               <div class="input-field-container mb-0 flex-grow">
                 <input type="text" id="edit-fio2-${dateStr}" placeholder=" " class="input-field w-full" value="${entry.fio2}">
                 <label class="input-field-label">FiO2(%)</label>
               </div>
-              ` : ''}
+              `
+                  : ""
+              }
             </div>
             <div class="flex justify-end gap-2">
               <button class="btn btn-text btn-sm" id="cancel-edit-${dateStr}">
@@ -140,16 +148,27 @@ export function updateUI(
             `;
       }
       entriesUl.appendChild(li);
-      
+
       if (entry.editing && saveEditCallback && cancelEditCallback) {
         // 保存ボタンのイベント
         const saveBtn = document.getElementById(`save-edit-${dateStr}`);
         if (saveBtn) {
           saveBtn.addEventListener("click", () => {
-            const dateInput = document.getElementById(`edit-date-${dateStr}`) as HTMLInputElement;
-            const flowInput = document.getElementById(`edit-flow-${dateStr}`) as HTMLInputElement;
-            const fio2Input = document.getElementById(`edit-fio2-${dateStr}`) as HTMLInputElement;
-            saveEditCallback(index, dateInput.value, flowInput.value, fio2Input?.value);
+            const dateInput = document.getElementById(
+              `edit-date-${dateStr}`,
+            ) as HTMLInputElement;
+            const flowInput = document.getElementById(
+              `edit-flow-${dateStr}`,
+            ) as HTMLInputElement;
+            const fio2Input = document.getElementById(
+              `edit-fio2-${dateStr}`,
+            ) as HTMLInputElement;
+            saveEditCallback(
+              index,
+              dateInput.value,
+              flowInput.value,
+              fio2Input?.value,
+            );
           });
         }
         // キャンセルボタンのイベント
@@ -226,7 +245,7 @@ export function updateUI(
                 </div>
             `;
       usageUl.appendChild(li);
-      
+
       // コピーボタンに直接イベントリスナーを追加
       const copyBtn = document.getElementById(`copy-btn-${date}`);
       if (copyBtn) {
@@ -350,7 +369,7 @@ export function copyUsageToClipboard(
   if (noRoomAirMode && parseFloat(nitrogenUsage) > 0) {
     text += `\n402400+552010/${nitrogenUsage}*1`;
   }
-  
+
   // Clipboard API が利用可能かチェック（HTTPS または localhost の場合のみ）
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard
@@ -380,7 +399,7 @@ function fallbackCopyToClipboard(text: string): void {
   document.body.appendChild(textArea);
   textArea.focus();
   textArea.select();
-  
+
   try {
     const successful = document.execCommand("copy");
     if (successful) {
@@ -392,6 +411,6 @@ function fallbackCopyToClipboard(text: string): void {
     console.error("execCommand 失敗：", err);
     displayError("❌ コピーに失敗しました");
   }
-  
+
   document.body.removeChild(textArea);
 }
