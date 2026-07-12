@@ -1,8 +1,9 @@
 <script lang="ts">
+    import { onMount } from "svelte";
     import EntryList from "./components/EntryList.svelte";
     import UsageResult from "./components/UsageResult.svelte";
     import SettingsDialog from "./components/SettingsDialog.svelte";
-    import { calculateUsage, formatDateForInput } from "./utils/calculation.ts";
+    import { calculateUsage } from "./utils/calculation.ts";
     import type { Entry } from "./types/entry.ts";
 
     // --- State ---
@@ -10,6 +11,8 @@
     let fio2Mode = false;
     let noRoomAirMode = false;
     let isSettingsOpen = false;
+    let darkMode = false;
+    let editingIndex: number | null = null;
 
     // Inputs
     let dateTimeStr = "";
@@ -26,6 +29,11 @@
     // Svelte 4 reactivity
     $: usageData = calculateUsage(entries, fio2Mode, noRoomAirMode);
     let errorMsg = "";
+
+    onMount(() => {
+        darkMode = localStorage.getItem("darkMode") === "true";
+        document.documentElement.classList.toggle("dark", darkMode);
+    });
 
     // Effect to sync noRoomAirMode
     $: if (!fio2Mode) {
@@ -128,31 +136,51 @@
     }
 
     function handleEdit(index: number) {
-        const entry = entries[index];
-        dateTimeStr = formatDateForInput(entry.dateTime);
-        flowStr = String(entry.flow);
-        if (fio2Mode) {
-            fio2Str = String(entry.fio2);
+        editingIndex = index;
+    }
+
+    function saveEdit(
+        index: number,
+        editedDateTime: string,
+        editedFlow: string,
+        editedFio2: string,
+    ) {
+        const dateTime = parseDateTime(editedDateTime.trim());
+        const flow = Number(editedFlow);
+        const fio2 = fio2Mode ? Number(editedFio2) : 21;
+        if (!dateTime) {
+            showError("無効な日付時刻形式です。");
+            return;
         }
-
-        // Remove from list
-        const newEntries = [...entries];
-        newEntries.splice(index, 1);
-        entries = newEntries;
-
-        if (entries.length > 0) {
-            lastDate = entries[entries.length - 1].dateTime;
-        } else {
-            lastDate = null;
+        if (!Number.isFinite(flow) || flow < 0) {
+            showError("無効な流量です。0以上の数値を入力してください。");
+            return;
         }
+        if (fio2Mode && (!Number.isInteger(fio2) || fio2 < 21 || fio2 > 100)) {
+            showError("無効なFiO2です。21以上100以下の整数を入力してください。");
+            return;
+        }
+        const updated = [...entries];
+        updated[index] = { dateTime, flow, fio2 };
+        entries = updated.sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime());
+        lastDate = entries[entries.length - 1]?.dateTime ?? null;
+        editingIndex = null;
+        showError("✅ 編集を保存しました");
+    }
 
-        dateTimeInputRef?.focus();
+    function cancelEdit() {
+        editingIndex = null;
     }
 
     function handleDelete(index: number) {
         const newEntries = [...entries];
         newEntries.splice(index, 1);
         entries = newEntries;
+        if (editingIndex === index) {
+            editingIndex = null;
+        } else if (editingIndex !== null && editingIndex > index) {
+            editingIndex -= 1;
+        }
         if (entries.length > 0) {
             lastDate = entries[entries.length - 1].dateTime;
         } else {
@@ -166,8 +194,30 @@
         dateTimeStr = "";
         flowStr = "";
         fio2Str = "";
+        editingIndex = null;
         showError("");
         dateTimeInputRef?.focus();
+    }
+
+    function changeDarkMode(enabled: boolean) {
+        darkMode = enabled;
+        document.documentElement.classList.toggle("dark", enabled);
+        localStorage.setItem("darkMode", String(enabled));
+    }
+
+    function changeFio2Mode(enabled: boolean) {
+        if (fio2Mode === enabled) return;
+        clearAll();
+        fio2Mode = enabled;
+        if (!enabled) noRoomAirMode = false;
+        showError("計算条件を変更したため、入力をクリアしました");
+    }
+
+    function changeNoRoomAirMode(enabled: boolean) {
+        if (noRoomAirMode === enabled) return;
+        clearAll();
+        noRoomAirMode = enabled;
+        showError("計算条件を変更したため、入力をクリアしました");
     }
 
     function showError(msg: string) {
@@ -254,8 +304,11 @@
                 <EntryList
                     {entries}
                     {fio2Mode}
+                    {editingIndex}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
+                    onSave={saveEdit}
+                    onCancel={cancelEdit}
                 />
             </div>
         </section>
@@ -269,7 +322,7 @@
                 計算結果
             </h2>
             <div id="usage" class="space-y-2">
-                <UsageResult {usageData} {noRoomAirMode} />
+                <UsageResult {usageData} {noRoomAirMode} notify={showError} />
             </div>
         </section>
     </div>
@@ -369,7 +422,11 @@
 <!-- Settings Modal -->
 <SettingsDialog
     bind:isOpen={isSettingsOpen}
-    bind:fio2Mode
-    bind:noRoomAirMode
+    {darkMode}
+    {fio2Mode}
+    {noRoomAirMode}
     close={() => (isSettingsOpen = false)}
+    onDarkModeChange={changeDarkMode}
+    onFio2ModeChange={changeFio2Mode}
+    onNoRoomAirModeChange={changeNoRoomAirMode}
 />

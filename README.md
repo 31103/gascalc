@@ -20,13 +20,18 @@ Material Design 3 に準拠したモダンなUI/UXに刷新され、Svelte フ�
 3. FiO2モードが有効になっている場合は、「FiO2 (%)」欄に、酸素濃度をパーセントで入力します。
    - 21 以上 100 以下の整数を入力してください。
 4. フッターの「<span class="material-symbols-outlined">add</span> (追加)」アイコンボタンをクリックします。
-5. 入力した内容がリストに追加され、酸素および窒素の使用量が計算されます。リスト内の各項目には「<span class="material-symbols-outlined">edit</span> (修正)」「<span class="material-symbols-outlined">delete</span> (削除)」アイコンボタンが表示されます。
+5. 入力した内容がリストに追加され、酸素および窒素の使用量が計算されます。リスト内の各項目には「<span class="material-symbols-outlined">edit</span> (修正)」「<span class="material-symbols-outlined">delete</span> (削除)」アイコンボタンが表示されます。修正時はその場で保存またはキャンセルできます。
 6. 計算結果の各項目には「<span class="material-symbols-outlined">content_copy</span> (コピー)」アイコンボタンが表示されます。
 7. トップアプリバーの「クリア」ボタンをクリックすると、入力内容と計算結果がクリアされます。
 
 ## 設定
 
 トップアプリバーの「<span class="material-symbols-outlined">settings</span> (設定)」アイコンをクリックすると、設定ダイアログを開くことができます。
+
+### ダークモード
+
+- ダークモードを有効にすると暗い配色へ切り替わります。
+- 設定はブラウザに保存され、次回起動時も維持されます。
 
 ### FiO2モード
 
