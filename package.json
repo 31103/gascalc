@@ -8,11 +8,8 @@
   },
   "type": "module",
   "scripts": {
-    "build:css": "npx @tailwindcss/cli -i ./src/styles/input.css -o ./dist/.temp/styles.css --minify",
-    "build:html": "node build.mjs",
-    "clean:temp": "node scripts/clean-temp.mjs",
-    "build": "npm run build:css && npm run build:html && npm run clean:temp",
-    "dev": "npx @tailwindcss/cli -i ./src/styles/input.css -o ./src/styles/output.css --watch",
+    "build": "vite build && node scripts/rename-build.mjs",
+    "dev": "vite",
     "lint": "biome check .",
     "lint:fix": "biome check --write --unsafe .",
     "format": "biome format --write .",
@@ -20,16 +17,18 @@
     "test:watch": "vitest",
     "prepare": "husky"
   },
-  "dependencies": {
-    "tailwindcss": "^4.1.6"
-  },
   "devDependencies": {
     "@biomejs/biome": "^2.4.8",
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
-    "@tailwindcss/cli": "^4.1.6",
-    "esbuild": "^0.24.0",
+    "@sveltejs/vite-plugin-svelte": "^3.1.0",
+    "autoprefixer": "^10.4.19",
     "husky": "^9.1.7",
+    "postcss": "^8.4.38",
+    "svelte": "^4.2.12",
+    "tailwindcss": "^3.4.17",
+    "vite": "^5.2.11",
+    "vite-plugin-singlefile": "^2.0.1",
     "vitest": "^3.1.0"
   }
 }

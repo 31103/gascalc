@@ -1,0 +1,186 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --md-primary: #0067c0;
+  --md-on-primary: #ffffff;
+  --md-error: #ba1a1a;
+  --md-background: #f7f9fc;
+  --md-on-background: #191c20;
+  --md-surface: #ffffff;
+  --md-surface-container: #eef1f6;
+  --md-on-surface: #191c20;
+  --md-on-surface-variant: #42474e;
+  --md-outline: #72777f;
+  --md-inverse-primary: #a8c8ff;
+}
+
+:root.dark {
+  color-scheme: dark;
+  --md-primary: #a8c8ff;
+  --md-on-primary: #003062;
+  --md-error: #ffb4ab;
+  --md-background: #101418;
+  --md-on-background: #e1e2e8;
+  --md-surface: #181c20;
+  --md-surface-container: #202428;
+  --md-on-surface: #e1e2e8;
+  --md-on-surface-variant: #c2c7cf;
+  --md-outline: #8c9199;
+  --md-inverse-primary: #005fae;
+}
+
+@layer base {
+  html {
+    font-family: "Roboto", "Noto Sans JP", sans-serif;
+    background: var(--md-background);
+    color: var(--md-on-background);
+  }
+
+  body {
+    @apply min-h-screen antialiased;
+    background: var(--md-background);
+    color: var(--md-on-background);
+    transition:
+      background-color 180ms ease,
+      color 180ms ease;
+  }
+
+  button,
+  input {
+    font: inherit;
+  }
+}
+
+@layer components {
+  .md-title-large {
+    @apply text-lg font-semibold;
+  }
+  .md-title-medium {
+    @apply text-base font-semibold;
+  }
+  .md-headline-small {
+    @apply text-xl font-semibold;
+  }
+  .md-body-large {
+    @apply text-base;
+  }
+  .md-body-medium {
+    @apply text-sm;
+  }
+  .md-label-small {
+    @apply text-xs font-semibold;
+  }
+
+  .md-card {
+    color: var(--md-on-surface);
+    background: color-mix(in srgb, var(--md-surface) 94%, transparent);
+    border: 1px solid color-mix(in srgb, var(--md-outline) 28%, transparent);
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 8%);
+  }
+
+  .md-list-item {
+    @apply block;
+  }
+
+  .list-row {
+    @apply flex items-center justify-between gap-3;
+  }
+  .list-actions {
+    @apply flex gap-1 flex-shrink-0;
+  }
+  .empty-message {
+    @apply py-6 text-center text-sm;
+    color: var(--md-on-surface-variant);
+  }
+
+  .btn-icon {
+    @apply inline-flex h-11 w-11 items-center justify-center rounded-full transition;
+    color: var(--md-on-surface-variant);
+    background: transparent;
+  }
+  .btn-icon:hover {
+    background: color-mix(in srgb, var(--md-primary) 12%, transparent);
+  }
+  .btn-icon.primary {
+    color: var(--md-primary);
+  }
+  .btn-icon.danger {
+    color: var(--md-error);
+  }
+
+  .btn-text {
+    @apply rounded-full px-4 py-2 font-medium transition;
+    color: var(--md-primary);
+  }
+  .btn-text:hover {
+    background: color-mix(in srgb, var(--md-primary) 10%, transparent);
+  }
+
+  .input-field {
+    @apply w-full rounded-lg border bg-transparent px-3 py-2 outline-none;
+    border-color: var(--md-outline);
+    color: var(--md-on-surface);
+  }
+  .input-field:focus {
+    border-color: var(--md-primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--md-primary) 25%, transparent);
+  }
+
+  .md-fab {
+    @apply inline-flex h-14 w-14 items-center justify-center rounded-2xl shadow-lg transition;
+  }
+  .md-fab-primary {
+    background: var(--md-primary);
+    color: var(--md-on-primary);
+  }
+
+  .snackbar {
+    @apply fixed bottom-28 left-1/2 z-[70] flex -translate-x-1/2 items-center rounded-xl px-5 py-3 text-white shadow-xl;
+    min-width: min(420px, 90vw);
+    background: #30343b;
+  }
+
+  .dialog-overlay {
+    @apply fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4;
+  }
+  .md-dialog {
+    @apply w-full max-w-sm rounded-3xl p-6 shadow-2xl;
+    color: var(--md-on-surface);
+    background: var(--md-surface-container);
+  }
+  .dialog-header {
+    @apply mb-5 flex items-center justify-between;
+  }
+  .dialog-actions {
+    @apply mt-6 flex justify-end;
+  }
+  .settings-list {
+    @apply space-y-2;
+  }
+  .setting-row {
+    @apply flex cursor-pointer items-center justify-between gap-6 rounded-xl p-3;
+  }
+  .setting-row:hover {
+    background: color-mix(in srgb, var(--md-primary) 8%, transparent);
+  }
+  .setting-row span {
+    @apply flex flex-col;
+  }
+  .setting-row small {
+    color: var(--md-on-surface-variant);
+  }
+  .setting-row input {
+    @apply h-5 w-5 accent-blue-600;
+  }
+
+  .edit-form {
+    @apply grid gap-2 sm:grid-cols-[1.2fr_1fr_1fr_auto];
+  }
+  .edit-actions {
+    @apply flex items-center justify-end gap-1;
+  }
+}
