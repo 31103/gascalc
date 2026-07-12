@@ -1,83 +1,65 @@
 <script lang="ts">
-    import { onMount } from "svelte";
+    import { onDestroy, onMount } from "svelte";
     import EntryList from "./components/EntryList.svelte";
     import UsageResult from "./components/UsageResult.svelte";
     import SettingsDialog from "./components/SettingsDialog.svelte";
+    import PfRatioDialog from "./components/PfRatioDialog.svelte";
+    import HelpDialog from "./components/HelpDialog.svelte";
+    import ConfirmDialog from "./components/ConfirmDialog.svelte";
     import { calculateUsage } from "./utils/calculation.ts";
-    import type { Entry } from "./types/entry.ts";
+    import type { BillingDateTime, Entry } from "./types/entry.ts";
+    import { isSameBillingDateTime, parseBillingDateTime, previewBillingDateTime } from "./utils/billingDateTime.ts";
+    import { upsertEntry } from "./utils/entries.ts";
+    import type { OxygenMeasurement } from "./types/pfRatio.ts";
+    import { upsertMeasurement } from "./utils/pfRatio.ts";
 
     // --- State ---
-    let entries: Entry[] = [];
-    let fio2Mode = false;
-    let noRoomAirMode = false;
-    let isSettingsOpen = false;
-    let darkMode = false;
-    let editingIndex: number | null = null;
+    let entries: Entry[] = $state([]);
+    let fio2Mode = $state(false);
+    let noRoomAirMode = $state(false);
+    let isSettingsOpen = $state(false);
+    let darkMode = $state(false);
+    let editingIndex: number | null = $state(null);
+    let measurements: OxygenMeasurement[] = $state([]);
+    let isPfDialogOpen = $state(false);
+    let editingMeasurement: OxygenMeasurement | null = $state(null);
+    let isHelpOpen = $state(false);
+    type Confirmation = { title: string; message: string; confirmLabel: string; action: () => void; returnFocusTo?: HTMLElement };
+    let confirmation: Confirmation | null = $state(null);
 
     // Inputs
-    let dateTimeStr = "";
-    let flowStr = "";
-    let fio2Str = "";
+    let dateTimeStr = $state("");
+    let flowStr = $state("");
+    let fio2Str = $state("");
 
     // DOM Refs
-    let dateTimeInputRef: HTMLInputElement;
-    let flowInputRef: HTMLInputElement;
-    let fio2InputRef: HTMLInputElement;
+    let dateTimeInputRef = $state<HTMLInputElement>();
+    let flowInputRef = $state<HTMLInputElement>();
+    let fio2InputRef = $state<HTMLInputElement>();
+    let settingsButtonRef = $state<HTMLButtonElement>();
+    let pfButtonRef = $state<HTMLButtonElement>();
+    let clearButtonRef = $state<HTMLButtonElement>();
+    let helpButtonRef = $state<HTMLButtonElement>();
 
     // Derived State
-    let lastDate: Date | null = null;
-    // Svelte 4 reactivity
-    $: usageData = calculateUsage(entries, fio2Mode, noRoomAirMode);
-    let errorMsg = "";
+    let lastDate: BillingDateTime | null = $state(null);
+    let usageData = $derived(calculateUsage(entries, fio2Mode, noRoomAirMode));
+    let fallbackDay = $derived(entries.at(-1)?.dateTime.day ?? 1);
+    let dateTimePreview = $derived(previewBillingDateTime(dateTimeStr, fallbackDay));
+    type Notification = { message: string; kind: "success" | "error" | "info" };
+    let notification: Notification | null = $state(null);
+    let notificationTimer: ReturnType<typeof setTimeout> | null = null;
 
     onMount(() => {
         darkMode = localStorage.getItem("darkMode") === "true";
         document.documentElement.classList.toggle("dark", darkMode);
     });
 
-    // Effect to sync noRoomAirMode
-    $: if (!fio2Mode) {
-        noRoomAirMode = false;
-        fio2Str = "";
-    }
+    onDestroy(() => {
+        if (notificationTimer) clearTimeout(notificationTimer);
+    });
 
     // --- Logic ---
-
-    function parseDateTime(input: string): Date | null {
-        let day: number, hour: number, minute: number;
-        const now = new Date();
-
-        if (input.length <= 4) {
-            // HHMM (Date omitted)
-            const paddedInput = input.padStart(4, "0");
-            if (!lastDate) {
-                day = 1;
-            } else {
-                day = lastDate.getDate();
-            }
-            hour = parseInt(paddedInput.slice(0, 2), 10);
-            minute = parseInt(paddedInput.slice(2, 4), 10);
-        } else {
-            // DDHHMM
-            const paddedInput = input.padStart(6, "0");
-            day = parseInt(paddedInput.slice(0, 2), 10);
-            hour = parseInt(paddedInput.slice(2, 4), 10);
-            minute = parseInt(paddedInput.slice(4, 6), 10);
-        }
-
-        if (
-            isNaN(day) ||
-            isNaN(hour) ||
-            isNaN(minute) ||
-            day < 1 ||
-            day > 31 ||
-            hour >= 24 ||
-            minute >= 60
-        ) {
-            return null;
-        }
-        return new Date(now.getFullYear(), now.getMonth(), day, hour, minute);
-    }
 
     function addEntry() {
         if (!dateTimeStr || !flowStr) {
@@ -85,7 +67,7 @@
             return;
         }
 
-        const parsedDateTime = parseDateTime(dateTimeStr);
+        const parsedDateTime = parseBillingDateTime(dateTimeStr, lastDate?.day ?? 1);
         if (!parsedDateTime) {
             showError(
                 "無効な日付時刻形式です。DDHHMM または HHMM で入力してください。",
@@ -120,16 +102,14 @@
             fio2: parsedFio2,
         };
 
-        entries = [...entries, newEntry].sort(
-            (a, b) => a.dateTime.getTime() - b.dateTime.getTime(),
-        );
+        entries = upsertEntry(entries, newEntry);
         lastDate = entries[entries.length - 1].dateTime;
 
         // Reset inputs
         dateTimeStr = "";
         flowStr = "";
         fio2Str = "";
-        showError("");
+        clearNotification();
 
         // Focus back to dateTime
         dateTimeInputRef?.focus();
@@ -145,7 +125,7 @@
         editedFlow: string,
         editedFio2: string,
     ) {
-        const dateTime = parseDateTime(editedDateTime.trim());
+        const dateTime = parseBillingDateTime(editedDateTime.trim(), lastDate?.day ?? 1);
         const flow = Number(editedFlow);
         const fio2 = fio2Mode ? Number(editedFio2) : 21;
         if (!dateTime) {
@@ -160,12 +140,11 @@
             showError("無効なFiO2です。21以上100以下の整数を入力してください。");
             return;
         }
-        const updated = [...entries];
-        updated[index] = { dateTime, flow, fio2 };
-        entries = updated.sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime());
+        const updated = entries.filter((_, currentIndex) => currentIndex !== index);
+        entries = upsertEntry(updated, { dateTime, flow, fio2 });
         lastDate = entries[entries.length - 1]?.dateTime ?? null;
         editingIndex = null;
-        showError("✅ 編集を保存しました");
+        showNotification("編集を保存しました", "success");
     }
 
     function cancelEdit() {
@@ -190,13 +169,30 @@
 
     function clearAll() {
         entries = [];
+        measurements = [];
         lastDate = null;
         dateTimeStr = "";
         flowStr = "";
         fio2Str = "";
         editingIndex = null;
-        showError("");
+        editingMeasurement = null;
+        isPfDialogOpen = false;
+        clearNotification();
         dateTimeInputRef?.focus();
+    }
+
+    function requestClearAll() {
+        if (entries.length === 0 && measurements.length === 0) {
+            clearAll();
+            return;
+        }
+        confirmation = {
+            title: "すべてクリアしますか？",
+            message: "入力リスト、計算結果、P/F比の測定履歴がすべて消えます。この操作は元に戻せません。",
+            confirmLabel: "すべてクリア",
+            action: clearAll,
+            returnFocusTo: clearButtonRef,
+        };
     }
 
     function changeDarkMode(enabled: boolean) {
@@ -207,38 +203,122 @@
 
     function changeFio2Mode(enabled: boolean) {
         if (fio2Mode === enabled) return;
-        clearAll();
-        fio2Mode = enabled;
-        if (!enabled) noRoomAirMode = false;
-        showError("計算条件を変更したため、入力をクリアしました");
+        const hadData = entries.length > 0 || measurements.length > 0;
+        const apply = () => {
+            clearAll();
+            fio2Mode = enabled;
+            if (!enabled) {
+                noRoomAirMode = false;
+                fio2Str = "";
+            }
+            showNotification(
+                hadData ? "計算条件を変更し、入力をクリアしました" : "計算条件を変更しました",
+                "info",
+            );
+        };
+        if (!hadData) apply();
+        else {
+            isSettingsOpen = false;
+            confirmation = {
+                title: "計算条件を変更しますか？",
+                message: "FiO2モードを変更すると、入力リスト、計算結果、P/F比の測定履歴がクリアされます。",
+                confirmLabel: "変更してクリア",
+                action: apply,
+                returnFocusTo: settingsButtonRef,
+            };
+        }
     }
 
     function changeNoRoomAirMode(enabled: boolean) {
         if (noRoomAirMode === enabled) return;
-        clearAll();
-        noRoomAirMode = enabled;
-        showError("計算条件を変更したため、入力をクリアしました");
+        const hadData = entries.length > 0 || measurements.length > 0;
+        const apply = () => {
+            clearAll();
+            noRoomAirMode = enabled;
+            showNotification(
+                hadData ? "計算条件を変更し、入力をクリアしました" : "計算条件を変更しました",
+                "info",
+            );
+        };
+        if (!hadData) apply();
+        else {
+            isSettingsOpen = false;
+            confirmation = {
+                title: "計算条件を変更しますか？",
+                message: "室内気の条件を変更すると、入力リスト、計算結果、P/F比の測定履歴がクリアされます。",
+                confirmLabel: "変更してクリア",
+                action: apply,
+                returnFocusTo: settingsButtonRef,
+            };
+        }
     }
 
     function showError(msg: string) {
-        errorMsg = msg;
-        if (msg) {
-            setTimeout(() => {
-                errorMsg = "";
+        showNotification(msg, "error");
+    }
+
+    function showNotification(message: string, kind: Notification["kind"] = "info") {
+        if (notificationTimer) clearTimeout(notificationTimer);
+        notification = message ? { message, kind } : null;
+        if (message) {
+            notificationTimer = setTimeout(() => {
+                notification = null;
+                notificationTimer = null;
             }, 3000);
         }
     }
 
+    function clearNotification() {
+        if (notificationTimer) clearTimeout(notificationTimer);
+        notificationTimer = null;
+        notification = null;
+    }
+
+    function openNewPfMeasurement() {
+        editingMeasurement = null;
+        isPfDialogOpen = true;
+    }
+
+    function openPfMeasurementEdit(measurement: OxygenMeasurement) {
+        editingMeasurement = measurement;
+        isPfDialogOpen = true;
+    }
+
+    function closePfDialog() {
+        isPfDialogOpen = false;
+        editingMeasurement = null;
+    }
+
+    function savePfMeasurement(
+        measurement: OxygenMeasurement,
+        original: OxygenMeasurement | null,
+    ) {
+        const remaining = original
+            ? measurements.filter(
+                  (current) =>
+                      !isSameBillingDateTime(current.dateTime, original.dateTime),
+              )
+            : measurements;
+        measurements = upsertMeasurement(remaining, measurement);
+    }
+
+    function deletePfMeasurement(measurement: OxygenMeasurement) {
+        measurements = measurements.filter(
+            (current) =>
+                !isSameBillingDateTime(current.dateTime, measurement.dateTime),
+        );
+    }
+
     // Key handlers
     function onDateTimeEnter(e: KeyboardEvent) {
-        if (e.key === "Enter") {
+        if (e.key === "Enter" && !e.isComposing) {
             e.preventDefault();
             flowInputRef?.focus();
         }
     }
 
     function onFlowEnter(e: KeyboardEvent) {
-        if (e.key === "Enter") {
+        if (e.key === "Enter" && !e.isComposing) {
             e.preventDefault();
             if (fio2Mode) {
                 fio2InputRef?.focus();
@@ -249,57 +329,51 @@
     }
 
     function onFio2Enter(e: KeyboardEvent) {
-        if (e.key === "Enter") {
+        if (e.key === "Enter" && !e.isComposing) {
             e.preventDefault();
             addEntry();
         }
     }
 </script>
 
-<!-- Top App Bar -->
-<header
-    class="bg-[var(--md-surface)] text-[var(--md-on-surface)] shadow-sm sticky top-0 z-40"
->
-    <div
-        class="max-w-screen-xl mx-auto px-4 h-16 flex items-center justify-between"
-    >
-        <div class="flex items-center gap-3">
-            <span
-                class="material-symbols-outlined text-3xl text-[var(--md-primary)]"
-                >gas_meter</span
-            >
-            <h1 class="md-title-large">ガス使用量計算</h1>
+<header class="app-header">
+    <div class="app-header-inner">
+        <div class="brand">
+            <span class="brand-mark material-symbols-outlined">oxygen_saturation</span>
+            <div>
+                <h1>ガス使用量計算</h1>
+                <p>{fio2Mode ? `FiO2モード${noRoomAirMode ? "・室内気不使用" : ""}` : "通常モード"}</p>
+            </div>
         </div>
-        <div class="flex gap-2">
-            <button
-                class="btn-text text-[var(--md-error)]"
-                on:click={clearAll}
-                id="clearAllBtn"
-            >
-                クリア
+        <nav class="header-actions" aria-label="アプリ操作">
+            <button class="header-help" type="button" onclick={() => (isHelpOpen = true)} bind:this={helpButtonRef} aria-label="使い方を開く">
+                <span class="material-symbols-outlined">help</span><span class="header-action-label">使い方</span>
             </button>
-            <button
-                class="btn-icon"
-                on:click={() => (isSettingsOpen = true)}
-                id="settingsBtn"
-                title="設定"
-            >
+            <button class="header-clear" type="button" onclick={requestClearAll} bind:this={clearButtonRef} id="clearAllBtn" aria-label="全クリア">
+                <span class="material-symbols-outlined">delete_sweep</span><span>全クリア</span>
+            </button>
+            <button class="btn-icon" onclick={() => (isSettingsOpen = true)} bind:this={settingsButtonRef} id="settingsBtn" aria-label="設定を開く" title="設定">
                 <span class="material-symbols-outlined">settings</span>
             </button>
-        </div>
+        </nav>
     </div>
 </header>
 
-<main class="max-w-screen-xl mx-auto px-4 py-6 pb-40">
-    <div class="grid md:grid-cols-2 gap-6">
+<main class:fio2-mode={fio2Mode} class="app-main">
+    {#if entries.length === 0}
+        <section class="start-guide" aria-labelledby="startGuideTitle">
+            <div class="start-guide-icon"><span class="material-symbols-outlined">add_notes</span></div>
+            <div>
+                <h2 id="startGuideTitle">最初の入力を追加しましょう</h2>
+                <p>画面下の入力欄に、日付時刻と流量を入力します。</p>
+                <p class="start-example"><strong>例</strong> 2日9時7分・1.5 L/min → <code>20907</code> と <code>1.5</code></p>
+            </div>
+        </section>
+    {/if}
+    <div class="workspace-grid">
         <!-- Input List -->
         <section>
-            <h2
-                class="md-title-medium mb-3 text-[var(--md-primary)] flex items-center gap-2"
-            >
-                <span class="material-symbols-outlined">list</span>
-                入力リスト
-            </h2>
+            <div class="section-heading"><span class="material-symbols-outlined">format_list_bulleted</span><div><h2>入力リスト</h2><p>{entries.length}件の入力</p></div></div>
             <div id="entries" class="space-y-2">
                 <EntryList
                     {entries}
@@ -315,107 +389,150 @@
 
         <!-- Calculation Result -->
         <section>
-            <h2
-                class="md-title-medium mb-3 text-[var(--md-primary)] flex items-center gap-2"
-            >
-                <span class="material-symbols-outlined">calculate</span>
-                計算結果
-            </h2>
+            <div class="section-heading"><span class="material-symbols-outlined">analytics</span><div><h2>計算結果</h2><p>日ごとの使用量</p></div></div>
             <div id="usage" class="space-y-2">
-                <UsageResult {usageData} {noRoomAirMode} notify={showError} />
+                <UsageResult
+                    {usageData}
+                    {noRoomAirMode}
+                    {entries}
+                    {fio2Mode}
+                    {measurements}
+                    onEditMeasurement={openPfMeasurementEdit}
+                    onDeleteMeasurement={deletePfMeasurement}
+                    notify={(message, kind) => showNotification(message, kind)}
+                />
             </div>
         </section>
     </div>
 </main>
 
-<!-- Footer Input Area -->
-<footer
-    class="fixed bottom-0 left-0 right-0 bg-[var(--md-surface-container)] p-4 shadow-[0_-2px_8px_rgba(0,0,0,0.1)] z-40"
->
-    <div class="max-w-screen-xl mx-auto flex flex-wrap gap-3 items-end">
-        <!-- Date Time Input -->
-        <div class="flex-grow min-w-[120px]">
-            <label
-                for="dateTime"
-                class="block md-label-small mb-1 text-[var(--md-on-surface-variant)]"
-                >日付時刻 (DDHHMM)</label
-            >
-            <input
-                type="text"
-                id="dateTime"
-                class="input-field w-full"
-                placeholder="例: 20907"
-                inputmode="numeric"
-                bind:value={dateTimeStr}
-                bind:this={dateTimeInputRef}
-                on:keypress={onDateTimeEnter}
-            />
+<footer class:fio2-mode={fio2Mode} class="input-dock">
+    <div class="input-dock-inner">
+        <div class="input-dock-title">
+            <div><span class="material-symbols-outlined">add_circle</span><strong>使用条件を追加</strong></div>
+            <button class="pf-link" type="button" onclick={openNewPfMeasurement} bind:this={pfButtonRef} aria-label="P/F比を入力"><span class="material-symbols-outlined">monitor_heart</span>P/F比</button>
         </div>
-
-        <!-- Flow Input -->
-        <div class="flex-grow min-w-[100px]">
-            <label
-                for="flow"
-                class="block md-label-small mb-1 text-[var(--md-on-surface-variant)]"
-                >流量 (L/min)</label
-            >
-            <input
-                type="number"
-                id="flow"
-                class="input-field w-full"
-                placeholder="例: 1.5"
-                step="0.1"
-                inputmode="decimal"
-                bind:value={flowStr}
-                bind:this={flowInputRef}
-                on:keypress={onFlowEnter}
-            />
-        </div>
-
-        <!-- FiO2 Input -->
-        {#if fio2Mode}
-            <div class="flex-grow min-w-[80px]" id="fio2InputGroup">
+        <div class="footer-input-layout">
+        <div class="footer-fields">
+            <!-- Date Time Input -->
+            <div class="date-time-field">
                 <label
-                    for="fio2Input"
-                    class="block md-label-small mb-1 text-[var(--md-on-surface-variant)]"
-                    >FiO2 (%)</label
+                    for="dateTime"
+                    class="field-label"
+                    >日付時刻 <span class="label-format">DDHHMM / HHMM</span></label
+                >
+                <input
+                    type="text"
+                    id="dateTime"
+                    aria-label="日付時刻 (DDHHMM)"
+                    class="input-field w-full"
+                    placeholder="例：20907"
+                    inputmode="numeric"
+                    bind:value={dateTimeStr}
+                    bind:this={dateTimeInputRef}
+                    onkeydown={onDateTimeEnter}
+                />
+                <p class:preview-error={dateTimePreview.kind === "invalid"} class="date-preview" aria-live="polite">
+                    <span class="material-symbols-outlined">{dateTimePreview.kind === "invalid" ? "error" : "event"}</span>{dateTimePreview.message}
+                </p>
+            </div>
+
+            <!-- Flow Input -->
+            <div>
+                <label
+                    for="flow"
+                    class="field-label"
+                    >流量 (L/min)</label
                 >
                 <input
                     type="number"
-                    id="fio2Input"
+                    id="flow"
                     class="input-field w-full"
-                    placeholder="21-100"
-                    min="21"
-                    max="100"
-                    inputmode="numeric"
-                    bind:value={fio2Str}
-                    bind:this={fio2InputRef}
-                    on:keypress={onFio2Enter}
+                    placeholder="例: 1.5"
+                    step="0.1"
+                    inputmode="decimal"
+                    bind:value={flowStr}
+                    bind:this={flowInputRef}
+                    onkeydown={onFlowEnter}
                 />
             </div>
-        {/if}
 
-        <!-- Add Button -->
-        <button
-            class="md-fab md-fab-primary mb-1 ml-auto"
-            id="addEntryBtn"
-            on:click={addEntry}
-            title="追加"
-        >
-            <span class="material-symbols-outlined">add</span>
-        </button>
+            <!-- FiO2 Input -->
+            {#if fio2Mode}
+                <div id="fio2InputGroup">
+                    <label
+                        for="fio2Input"
+                    class="field-label"
+                        >FiO2 (%)</label
+                    >
+                    <input
+                        type="number"
+                        id="fio2Input"
+                        class="input-field w-full"
+                        placeholder="21-100"
+                        min="21"
+                        max="100"
+                        inputmode="numeric"
+                        bind:value={fio2Str}
+                        bind:this={fio2InputRef}
+                        onkeydown={onFio2Enter}
+                    />
+                </div>
+            {/if}
+        </div>
+
+        <div class="footer-actions">
+            <!-- Add Button -->
+            <button
+                class="md-fab md-fab-primary"
+                id="addEntryBtn"
+                onclick={addEntry}
+                aria-label="入力を追加"
+                title="追加"
+            >
+                <span class="material-symbols-outlined">add</span><span class="add-label">追加</span>
+            </button>
+        </div>
+        </div>
     </div>
 </footer>
 
+<PfRatioDialog
+    isOpen={isPfDialogOpen}
+    {entries}
+    {measurements}
+    {editingMeasurement}
+    close={closePfDialog}
+    save={savePfMeasurement}
+    returnFocusTo={pfButtonRef}
+/>
+
+<HelpDialog isOpen={isHelpOpen} close={() => (isHelpOpen = false)} returnFocusTo={helpButtonRef} />
+
+<ConfirmDialog
+    isOpen={Boolean(confirmation)}
+    title={confirmation?.title ?? ""}
+    message={confirmation?.message ?? ""}
+    confirmLabel={confirmation?.confirmLabel}
+    close={() => (confirmation = null)}
+    confirm={() => confirmation?.action()}
+    returnFocusTo={confirmation?.returnFocusTo}
+/>
+
 <!-- Snackbar -->
-<div id="snackbar" class="snackbar {errorMsg ? '' : 'hidden'}">
+<div
+    id="snackbar"
+    class="snackbar {notification ? '' : 'hidden'}"
+    role={notification?.kind === "error" ? "alert" : "status"}
+    aria-live={notification?.kind === "error" ? "assertive" : "polite"}
+>
     <span id="snackbarText" class="md-body-medium flex-grow mr-4"
-        >{errorMsg}</span
+        >{notification?.message ?? ""}</span
     >
     <button
         id="snackbarAction"
         class="text-[var(--md-inverse-primary)] font-bold text-sm uppercase tracking-wider"
-        on:click={() => (errorMsg = "")}>閉じる</button
+        onclick={clearNotification}>閉じる</button
     >
 </div>
 
@@ -426,6 +543,7 @@
     {fio2Mode}
     {noRoomAirMode}
     close={() => (isSettingsOpen = false)}
+    returnFocusTo={settingsButtonRef}
     onDarkModeChange={changeDarkMode}
     onFio2ModeChange={changeFio2Mode}
     onNoRoomAirModeChange={changeNoRoomAirMode}

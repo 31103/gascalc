@@ -1,4 +1,5 @@
 import type { Entry } from "../types/entry.ts";
+import { endOfBillingDayMinutes, toBillingMinutes } from "./billingDateTime.ts";
 
 /**
  * 日ごとのガス使用量を表す型
@@ -9,28 +10,9 @@ export interface DailyUsage {
 }
 
 // --- 定数 ---
-const MS_PER_MINUTE = 1000 * 60;
 const PERCENT_TO_DECIMAL = 0.01;
 const NON_OXYGEN_GAS_RATIO_IN_AIR = 0.79; // 空気中の窒素+アルゴンの割合 (FiO2計算用)
 const DEFAULT_FIO2_IN_AIR = 21; // 空気中の酸素濃度(%)
-
-/**
- * 日付をフォーマットする (例: "5日09時07分")
- * @param date フォーマットする Date オブジェクト
- * @returns フォーマットされた文字列
- */
-export function formatDate(date: Date): string {
-  return `${date.getDate()}日${date.getHours().toString().padStart(2, "0")}時${date.getMinutes().toString().padStart(2, "0")}分`;
-}
-
-/**
- * 入力フィールド用に日付をフォーマットする (例: "50907")
- * @param date フォーマットする Date オブジェクト
- * @returns フォーマットされた文字列
- */
-export function formatDateForInput(date: Date): string {
-  return `${date.getDate()}${date.getHours().toString().padStart(2, "0")}${date.getMinutes().toString().padStart(2, "0")}`;
-}
 
 /**
  * 特定の期間と設定に基づいてガス使用量を計算する
@@ -119,47 +101,21 @@ export function calculateUsage(
 
     // 計算期間の終了時刻を決定
     // 次のエントリがない場合は、その日の終わり (翌日の0時) まで
-    let periodEndTime: Date;
+    let periodEndMinute: number;
     if (nextEntry) {
-      periodEndTime = nextEntry.dateTime;
+      periodEndMinute = toBillingMinutes(nextEntry.dateTime);
     } else {
-      periodEndTime = new Date(
-        currentEntry.dateTime.getFullYear(),
-        currentEntry.dateTime.getMonth(),
-        currentEntry.dateTime.getDate() + 1, // 翌日
-        0,
-        0,
-        0,
-        0, // 0時0分0秒
-      );
+      periodEndMinute = endOfBillingDayMinutes(currentEntry.dateTime.day);
     }
 
-    let remainingTimeInPeriodMs =
-      periodEndTime.getTime() - currentEntry.dateTime.getTime();
-    let loopCurrentDateTime = new Date(currentEntry.dateTime);
+    let currentMinute = toBillingMinutes(currentEntry.dateTime);
 
     // 現在のエントリ区間を日ごとに区切って計算
-    while (remainingTimeInPeriodMs > 0) {
-      const loopCurrentDate = loopCurrentDateTime.getDate();
-
-      // 現在の日付の終わり (翌日の0時) を計算
-      const endOfDay = new Date(
-        loopCurrentDateTime.getFullYear(),
-        loopCurrentDateTime.getMonth(),
-        loopCurrentDate + 1, // 翌日
-        0,
-        0,
-        0,
-        0, // 0時0分0秒
-      );
-
-      // このループで計算するべき時間 (ミリ秒)
-      // (区間の残り時間 と 日の終わりまでの時間 の短い方)
-      const timeToCalculateMs = Math.min(
-        remainingTimeInPeriodMs,
-        endOfDay.getTime() - loopCurrentDateTime.getTime(),
-      );
-      const timeToCalculateMin = timeToCalculateMs / MS_PER_MINUTE;
+    while (currentMinute < periodEndMinute) {
+      const loopCurrentDate = Math.floor(currentMinute / (24 * 60)) + 1;
+      const timeToCalculateMin =
+        Math.min(periodEndMinute, endOfBillingDayMinutes(loopCurrentDate)) -
+        currentMinute;
 
       if (timeToCalculateMin <= 0) {
         // 計算時間が0以下の場合はスキップ
@@ -181,10 +137,7 @@ export function calculateUsage(
       );
 
       // 次の計算のために時間を進める
-      loopCurrentDateTime = new Date(
-        loopCurrentDateTime.getTime() + timeToCalculateMs,
-      );
-      remainingTimeInPeriodMs -= timeToCalculateMs;
+      currentMinute += timeToCalculateMin;
     }
   }
 

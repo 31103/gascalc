@@ -21,7 +21,9 @@ function fallbackCopy(text: string): boolean {
   textArea.focus();
   textArea.select();
   try {
-    return document.execCommand("copy");
+    return Boolean(document.execCommand?.("copy"));
+  } catch {
+    return false;
   } finally {
     textArea.remove();
   }
@@ -36,5 +38,9 @@ export async function copyText(text: string): Promise<boolean> {
   } catch {
     // Clipboard APIが拒否された場合は従来APIへフォールバックする。
   }
-  return fallbackCopy(text);
+  try {
+    return fallbackCopy(text);
+  } catch {
+    return false;
+  }
 }
