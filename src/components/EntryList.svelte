@@ -1,19 +1,17 @@
 <script lang="ts">
   import type { Entry } from "../types/entry.ts";
-  import { formatDate, formatDateForInput } from "../utils/calculation.ts";
+  import { formatBillingDateTime, formatBillingDateTimeForInput } from "../utils/billingDateTime.ts";
 
-  export let entries: Entry[];
-  export let fio2Mode: boolean;
-  export let editingIndex: number | null;
-  export let onEdit: (index: number) => void;
-  export let onDelete: (index: number) => void;
-  export let onSave: (
-    index: number,
-    dateTime: string,
-    flow: string,
-    fio2: string,
-  ) => void;
-  export let onCancel: () => void;
+  interface Props {
+    entries: Entry[];
+    fio2Mode: boolean;
+    editingIndex: number | null;
+    onEdit: (index: number) => void;
+    onDelete: (index: number) => void;
+    onSave: (index: number, dateTime: string, flow: string, fio2: string) => void;
+    onCancel: () => void;
+  }
+  let { entries, fio2Mode, editingIndex, onEdit, onDelete, onSave, onCancel }: Props = $props();
 </script>
 
 <ul class="space-y-2">
@@ -25,7 +23,8 @@
         {#if editingIndex === index}
           <form
             class="edit-form"
-            on:submit|preventDefault={(event) => {
+            onsubmit={(event) => {
+              event.preventDefault();
               const form = event.currentTarget;
               const data = new FormData(form);
               onSave(
@@ -40,7 +39,7 @@
               class="input-field"
               name="dateTime"
               aria-label="編集する日付時刻"
-              value={formatDateForInput(entry.dateTime)}
+              value={formatBillingDateTimeForInput(entry.dateTime)}
               inputmode="numeric"
               required
             />
@@ -70,7 +69,7 @@
               <button class="btn-icon primary" type="submit" title="保存" aria-label="保存">
                 <span class="material-symbols-outlined">save</span>
               </button>
-              <button class="btn-icon" type="button" on:click={onCancel} title="キャンセル" aria-label="キャンセル">
+              <button class="btn-icon" type="button" onclick={onCancel} title="キャンセル" aria-label="キャンセル">
                 <span class="material-symbols-outlined">close</span>
               </button>
             </div>
@@ -78,14 +77,14 @@
         {:else}
           <div class="list-row">
             <span class="md-body-large flex-grow">
-              {formatDate(entry.dateTime)} {entry.flow}L/min
+              {formatBillingDateTime(entry.dateTime)} {entry.flow}L/min
               {#if fio2Mode} FiO2:{entry.fio2}%{/if}
             </span>
             <div class="list-actions">
-              <button class="btn-icon" on:click={() => onEdit(index)} title="修正" aria-label="修正">
+              <button class="btn-icon" onclick={() => onEdit(index)} title="修正" aria-label="修正">
                 <span class="material-symbols-outlined">edit</span>
               </button>
-              <button class="btn-icon danger" on:click={() => onDelete(index)} title="削除" aria-label="削除">
+              <button class="btn-icon danger" onclick={() => onDelete(index)} title="削除" aria-label="削除">
                 <span class="material-symbols-outlined">delete</span>
               </button>
             </div>

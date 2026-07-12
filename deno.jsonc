@@ -22,12 +22,12 @@
   },
   "imports": {
     "@std/encoding": "jsr:@std/encoding@^0.224.0",
-    "@sveltejs/vite-plugin-svelte": "npm:@sveltejs/vite-plugin-svelte@^3.1.0",
-    "autoprefixer": "npm:autoprefixer@^10.4.19",
-    "postcss": "npm:postcss@^8.4.38",
-    "svelte": "npm:svelte@^4.2.12",
-    "tailwindcss": "npm:tailwindcss@^3.4.17",
-    "vite": "npm:vite@^5.2.11",
-    "vite-plugin-singlefile": "npm:vite-plugin-singlefile@^2.0.1"
+    "@sveltejs/vite-plugin-svelte": "npm:@sveltejs/vite-plugin-svelte@^7.2.0",
+    "@tailwindcss/postcss": "npm:@tailwindcss/postcss@^4.3.2",
+    "postcss": "npm:postcss@^8.5.17",
+    "svelte": "npm:svelte@^5.56.4",
+    "tailwindcss": "npm:tailwindcss@^4.3.2",
+    "vite": "npm:vite@^8.1.4",
+    "vite-plugin-singlefile": "npm:vite-plugin-singlefile@^2.3.3"
   }
 }

@@ -1,83 +1,49 @@
 <script lang="ts">
-    import { onMount } from "svelte";
+    import { onDestroy, onMount } from "svelte";
     import EntryList from "./components/EntryList.svelte";
     import UsageResult from "./components/UsageResult.svelte";
     import SettingsDialog from "./components/SettingsDialog.svelte";
     import { calculateUsage } from "./utils/calculation.ts";
-    import type { Entry } from "./types/entry.ts";
+    import type { BillingDateTime, Entry } from "./types/entry.ts";
+    import { parseBillingDateTime } from "./utils/billingDateTime.ts";
+    import { upsertEntry } from "./utils/entries.ts";
 
     // --- State ---
-    let entries: Entry[] = [];
-    let fio2Mode = false;
-    let noRoomAirMode = false;
-    let isSettingsOpen = false;
-    let darkMode = false;
-    let editingIndex: number | null = null;
+    let entries: Entry[] = $state([]);
+    let fio2Mode = $state(false);
+    let noRoomAirMode = $state(false);
+    let isSettingsOpen = $state(false);
+    let darkMode = $state(false);
+    let editingIndex: number | null = $state(null);
 
     // Inputs
-    let dateTimeStr = "";
-    let flowStr = "";
-    let fio2Str = "";
+    let dateTimeStr = $state("");
+    let flowStr = $state("");
+    let fio2Str = $state("");
 
     // DOM Refs
-    let dateTimeInputRef: HTMLInputElement;
-    let flowInputRef: HTMLInputElement;
-    let fio2InputRef: HTMLInputElement;
+    let dateTimeInputRef = $state<HTMLInputElement>();
+    let flowInputRef = $state<HTMLInputElement>();
+    let fio2InputRef = $state<HTMLInputElement>();
+    let settingsButtonRef = $state<HTMLButtonElement>();
 
     // Derived State
-    let lastDate: Date | null = null;
-    // Svelte 4 reactivity
-    $: usageData = calculateUsage(entries, fio2Mode, noRoomAirMode);
-    let errorMsg = "";
+    let lastDate: BillingDateTime | null = $state(null);
+    let usageData = $derived(calculateUsage(entries, fio2Mode, noRoomAirMode));
+    type Notification = { message: string; kind: "success" | "error" | "info" };
+    let notification: Notification | null = $state(null);
+    let notificationTimer: ReturnType<typeof setTimeout> | null = null;
 
     onMount(() => {
         darkMode = localStorage.getItem("darkMode") === "true";
         document.documentElement.classList.toggle("dark", darkMode);
     });
 
-    // Effect to sync noRoomAirMode
-    $: if (!fio2Mode) {
-        noRoomAirMode = false;
-        fio2Str = "";
-    }
+    onDestroy(() => {
+        if (notificationTimer) clearTimeout(notificationTimer);
+    });
 
     // --- Logic ---
-
-    function parseDateTime(input: string): Date | null {
-        let day: number, hour: number, minute: number;
-        const now = new Date();
-
-        if (input.length <= 4) {
-            // HHMM (Date omitted)
-            const paddedInput = input.padStart(4, "0");
-            if (!lastDate) {
-                day = 1;
-            } else {
-                day = lastDate.getDate();
-            }
-            hour = parseInt(paddedInput.slice(0, 2), 10);
-            minute = parseInt(paddedInput.slice(2, 4), 10);
-        } else {
-            // DDHHMM
-            const paddedInput = input.padStart(6, "0");
-            day = parseInt(paddedInput.slice(0, 2), 10);
-            hour = parseInt(paddedInput.slice(2, 4), 10);
-            minute = parseInt(paddedInput.slice(4, 6), 10);
-        }
-
-        if (
-            isNaN(day) ||
-            isNaN(hour) ||
-            isNaN(minute) ||
-            day < 1 ||
-            day > 31 ||
-            hour >= 24 ||
-            minute >= 60
-        ) {
-            return null;
-        }
-        return new Date(now.getFullYear(), now.getMonth(), day, hour, minute);
-    }
 
     function addEntry() {
         if (!dateTimeStr || !flowStr) {
@@ -85,7 +51,7 @@
             return;
         }
 
-        const parsedDateTime = parseDateTime(dateTimeStr);
+        const parsedDateTime = parseBillingDateTime(dateTimeStr, lastDate?.day ?? 1);
         if (!parsedDateTime) {
             showError(
                 "無効な日付時刻形式です。DDHHMM または HHMM で入力してください。",
@@ -120,16 +86,14 @@
             fio2: parsedFio2,
         };
 
-        entries = [...entries, newEntry].sort(
-            (a, b) => a.dateTime.getTime() - b.dateTime.getTime(),
-        );
+        entries = upsertEntry(entries, newEntry);
         lastDate = entries[entries.length - 1].dateTime;
 
         // Reset inputs
         dateTimeStr = "";
         flowStr = "";
         fio2Str = "";
-        showError("");
+        clearNotification();
 
         // Focus back to dateTime
         dateTimeInputRef?.focus();
@@ -145,7 +109,7 @@
         editedFlow: string,
         editedFio2: string,
     ) {
-        const dateTime = parseDateTime(editedDateTime.trim());
+        const dateTime = parseBillingDateTime(editedDateTime.trim(), lastDate?.day ?? 1);
         const flow = Number(editedFlow);
         const fio2 = fio2Mode ? Number(editedFio2) : 21;
         if (!dateTime) {
@@ -160,12 +124,11 @@
             showError("無効なFiO2です。21以上100以下の整数を入力してください。");
             return;
         }
-        const updated = [...entries];
-        updated[index] = { dateTime, flow, fio2 };
-        entries = updated.sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime());
+        const updated = entries.filter((_, currentIndex) => currentIndex !== index);
+        entries = upsertEntry(updated, { dateTime, flow, fio2 });
         lastDate = entries[entries.length - 1]?.dateTime ?? null;
         editingIndex = null;
-        showError("✅ 編集を保存しました");
+        showNotification("編集を保存しました", "success");
     }
 
     function cancelEdit() {
@@ -195,7 +158,7 @@
         flowStr = "";
         fio2Str = "";
         editingIndex = null;
-        showError("");
+        clearNotification();
         dateTimeInputRef?.focus();
     }
 
@@ -209,36 +172,51 @@
         if (fio2Mode === enabled) return;
         clearAll();
         fio2Mode = enabled;
-        if (!enabled) noRoomAirMode = false;
-        showError("計算条件を変更したため、入力をクリアしました");
+        if (!enabled) {
+            noRoomAirMode = false;
+            fio2Str = "";
+        }
+        showNotification("計算条件を変更したため、入力をクリアしました", "info");
     }
 
     function changeNoRoomAirMode(enabled: boolean) {
         if (noRoomAirMode === enabled) return;
         clearAll();
         noRoomAirMode = enabled;
-        showError("計算条件を変更したため、入力をクリアしました");
+        showNotification("計算条件を変更したため、入力をクリアしました", "info");
     }
 
     function showError(msg: string) {
-        errorMsg = msg;
-        if (msg) {
-            setTimeout(() => {
-                errorMsg = "";
+        showNotification(msg, "error");
+    }
+
+    function showNotification(message: string, kind: Notification["kind"] = "info") {
+        if (notificationTimer) clearTimeout(notificationTimer);
+        notification = message ? { message, kind } : null;
+        if (message) {
+            notificationTimer = setTimeout(() => {
+                notification = null;
+                notificationTimer = null;
             }, 3000);
         }
     }
 
+    function clearNotification() {
+        if (notificationTimer) clearTimeout(notificationTimer);
+        notificationTimer = null;
+        notification = null;
+    }
+
     // Key handlers
     function onDateTimeEnter(e: KeyboardEvent) {
-        if (e.key === "Enter") {
+        if (e.key === "Enter" && !e.isComposing) {
             e.preventDefault();
             flowInputRef?.focus();
         }
     }
 
     function onFlowEnter(e: KeyboardEvent) {
-        if (e.key === "Enter") {
+        if (e.key === "Enter" && !e.isComposing) {
             e.preventDefault();
             if (fio2Mode) {
                 fio2InputRef?.focus();
@@ -249,7 +227,7 @@
     }
 
     function onFio2Enter(e: KeyboardEvent) {
-        if (e.key === "Enter") {
+        if (e.key === "Enter" && !e.isComposing) {
             e.preventDefault();
             addEntry();
         }
@@ -273,14 +251,15 @@
         <div class="flex gap-2">
             <button
                 class="btn-text text-[var(--md-error)]"
-                on:click={clearAll}
+                onclick={clearAll}
                 id="clearAllBtn"
             >
                 クリア
             </button>
             <button
                 class="btn-icon"
-                on:click={() => (isSettingsOpen = true)}
+                onclick={() => (isSettingsOpen = true)}
+                bind:this={settingsButtonRef}
                 id="settingsBtn"
                 title="設定"
             >
@@ -322,7 +301,11 @@
                 計算結果
             </h2>
             <div id="usage" class="space-y-2">
-                <UsageResult {usageData} {noRoomAirMode} notify={showError} />
+                <UsageResult
+                    {usageData}
+                    {noRoomAirMode}
+                    notify={(message, kind) => showNotification(message, kind)}
+                />
             </div>
         </section>
     </div>
@@ -348,7 +331,7 @@
                 inputmode="numeric"
                 bind:value={dateTimeStr}
                 bind:this={dateTimeInputRef}
-                on:keypress={onDateTimeEnter}
+                onkeydown={onDateTimeEnter}
             />
         </div>
 
@@ -368,7 +351,7 @@
                 inputmode="decimal"
                 bind:value={flowStr}
                 bind:this={flowInputRef}
-                on:keypress={onFlowEnter}
+                onkeydown={onFlowEnter}
             />
         </div>
 
@@ -390,7 +373,7 @@
                     inputmode="numeric"
                     bind:value={fio2Str}
                     bind:this={fio2InputRef}
-                    on:keypress={onFio2Enter}
+                    onkeydown={onFio2Enter}
                 />
             </div>
         {/if}
@@ -399,7 +382,7 @@
         <button
             class="md-fab md-fab-primary mb-1 ml-auto"
             id="addEntryBtn"
-            on:click={addEntry}
+            onclick={addEntry}
             title="追加"
         >
             <span class="material-symbols-outlined">add</span>
@@ -408,14 +391,19 @@
 </footer>
 
 <!-- Snackbar -->
-<div id="snackbar" class="snackbar {errorMsg ? '' : 'hidden'}">
+<div
+    id="snackbar"
+    class="snackbar {notification ? '' : 'hidden'}"
+    role={notification?.kind === "error" ? "alert" : "status"}
+    aria-live={notification?.kind === "error" ? "assertive" : "polite"}
+>
     <span id="snackbarText" class="md-body-medium flex-grow mr-4"
-        >{errorMsg}</span
+        >{notification?.message ?? ""}</span
     >
     <button
         id="snackbarAction"
         class="text-[var(--md-inverse-primary)] font-bold text-sm uppercase tracking-wider"
-        on:click={() => (errorMsg = "")}>閉じる</button
+        onclick={clearNotification}>閉じる</button
     >
 </div>
 
@@ -426,6 +414,7 @@
     {fio2Mode}
     {noRoomAirMode}
     close={() => (isSettingsOpen = false)}
+    returnFocusTo={settingsButtonRef}
     onDarkModeChange={changeDarkMode}
     onFio2ModeChange={changeFio2Mode}
     onNoRoomAirModeChange={changeNoRoomAirMode}

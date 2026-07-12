@@ -1,26 +1,82 @@
 <script lang="ts">
-  export let isOpen: boolean;
-  export let darkMode: boolean;
-  export let fio2Mode: boolean;
-  export let noRoomAirMode: boolean;
-  export let close: () => void;
-  export let onDarkModeChange: (enabled: boolean) => void;
-  export let onFio2ModeChange: (enabled: boolean) => void;
-  export let onNoRoomAirModeChange: (enabled: boolean) => void;
+  import { tick } from "svelte";
+
+  interface Props {
+    isOpen: boolean;
+    darkMode: boolean;
+    fio2Mode: boolean;
+    noRoomAirMode: boolean;
+    close: () => void;
+    returnFocusTo?: HTMLElement;
+    onDarkModeChange: (enabled: boolean) => void;
+    onFio2ModeChange: (enabled: boolean) => void;
+    onNoRoomAirModeChange: (enabled: boolean) => void;
+  }
+
+  let {
+    isOpen = $bindable(),
+    darkMode,
+    fio2Mode,
+    noRoomAirMode,
+    close,
+    returnFocusTo,
+    onDarkModeChange,
+    onFio2ModeChange,
+    onNoRoomAirModeChange,
+  }: Props = $props();
+  let dialog = $state<HTMLDivElement>();
+  function focusOnMount(node: HTMLElement) {
+    node.focus();
+  }
+
+  function closeDialog() {
+    close();
+    void tick().then(() => returnFocusTo?.focus());
+  }
 
   function onOverlayClick(event: MouseEvent) {
-    if (event.target === event.currentTarget) close();
+    if (event.target === event.currentTarget) closeDialog();
+  }
+
+  function onDialogKeydown(event: KeyboardEvent) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeDialog();
+      return;
+    }
+    if (event.key !== "Tab") return;
+    const focusable = Array.from(
+      dialog?.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ) ?? [],
+    );
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
   }
 </script>
 
 {#if isOpen}
-  <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <!-- svelte-ignore a11y-no-static-element-interactions -->
-  <div class="dialog-overlay" on:click={onOverlayClick} id="settingsOverlay">
-    <div class="md-dialog" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+  <div class="dialog-overlay" onclick={onOverlayClick} id="settingsOverlay" role="presentation">
+    <div
+      class="md-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="settingsTitle"
+      tabindex="-1"
+      bind:this={dialog}
+      onkeydown={onDialogKeydown}
+    >
       <div class="dialog-header">
         <h2 id="settingsTitle" class="md-headline-small">設定</h2>
-        <button class="btn-icon" on:click={close} title="閉じる" aria-label="閉じる">
+        <button use:focusOnMount class="btn-icon" onclick={closeDialog} title="閉じる" aria-label="閉じる">
           <span class="material-symbols-outlined">close</span>
         </button>
       </div>
@@ -28,20 +84,20 @@
       <div class="settings-list">
         <label class="setting-row">
           <span><strong>ダークモード</strong><small>暗い配色に切り替え</small></span>
-          <input id="darkMode" type="checkbox" checked={darkMode} on:change={(event) => onDarkModeChange(event.currentTarget.checked)} />
+          <input aria-label="ダークモード" id="darkMode" type="checkbox" checked={darkMode} onchange={(event) => onDarkModeChange(event.currentTarget.checked)} />
         </label>
         <label class="setting-row">
           <span><strong>FiO2モード</strong><small>FiO2を指定して計算</small></span>
-          <input id="fio2Mode" type="checkbox" checked={fio2Mode} on:change={(event) => onFio2ModeChange(event.currentTarget.checked)} />
+          <input aria-label="FiO2モード" id="fio2Mode" type="checkbox" checked={fio2Mode} onchange={(event) => onFio2ModeChange(event.currentTarget.checked)} />
         </label>
         <label class="setting-row">
           <span><strong>室内気不使用</strong><small>配管からの合成空気を使用</small></span>
-          <input id="noRoomAirMode" type="checkbox" checked={noRoomAirMode} disabled={!fio2Mode} on:change={(event) => onNoRoomAirModeChange(event.currentTarget.checked)} />
+          <input aria-label="室内気不使用" id="noRoomAirMode" type="checkbox" checked={noRoomAirMode} disabled={!fio2Mode} onchange={(event) => onNoRoomAirModeChange(event.currentTarget.checked)} />
         </label>
       </div>
 
       <div class="dialog-actions">
-        <button class="btn-text" on:click={close} id="settingsCloseBtn2">閉じる</button>
+        <button class="btn-text" onclick={closeDialog} id="settingsCloseBtn2">閉じる</button>
       </div>
     </div>
   </div>

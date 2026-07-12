@@ -54,7 +54,7 @@ ci: GitHub Actions ワークフローを追加
 ## ビルド方法
 
 ```bash
-npm install
+npm ci
 npm run build
 ```
 
@@ -62,6 +62,12 @@ npm run build
 
 ```bash
 npm test
+```
+
+## 型チェック
+
+```bash
+npm run check
 ```
 
 ## Lint / Format
@@ -74,7 +80,7 @@ npm run format    # Format
 
 ### 自動フォーマット
 
-このプロジェクトでは、コミット前に自動でフォーマットとテストが実行されます（pre-commit hook）。
+このプロジェクトでは、コミット前に自動でフォーマットとテストが実行されます（pre-commit hook）。プルリクエストでは、CIがLint、型チェック、テスト、ビルドを実行します。
 
 **VS Code を使用している場合:**
 - `.vscode/settings.json` でフォーマット設定が有効になっています
