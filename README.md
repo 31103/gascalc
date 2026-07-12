@@ -3,8 +3,7 @@
 ## 概要
 
 このツールは、入力された日付時刻と流量から、日ごとの酸素および窒素の使用量を計算します。
-Material Design 3
-に準拠したモダンなUI/UXに刷新され、主要な操作はアイコンボタンで行えるようになりました。
+Material Design 3 に準拠したモダンなUI/UXに刷新され、Svelte フレームワークを採用することで開発体験と保守性が向上しました。
 ビルド成果物は単一のHTMLファイルとして提供され、ローカル環境でインターネット接続なしに動作します。
 
 [ガス使用量計算ツール（デモ）](https://31103.github.io/ijitools/gascalc/gascalc.html)
@@ -19,22 +18,16 @@ Material Design 3
 2. 「流量 (L/min)」欄に、流量を `L/min` 単位で入力します。
    - 例：酸素 1.5L/min の場合、`1.5` と入力します。
    - 人工呼吸器の場合は、分時換気量を入力します。
-3. FiO2モードが有効になっている場合は、「FiO2
-   (%)」欄に、酸素濃度をパーセントで入力します。
+3. FiO2モードが有効になっている場合は、「FiO2 (%)」欄に、酸素濃度をパーセントで入力します。
    - 21 以上 100 以下の整数を入力してください。
-4. フッターの「<span class="material-symbols-outlined">add</span>
-   (追加)」アイコンボタンをクリックします。
-5. 入力した内容がリストに追加され、酸素および窒素の使用量が計算されます。リスト内の各項目には「<span class="material-symbols-outlined">edit</span>
-   (修正)」「<span class="material-symbols-outlined">delete</span>
-   (削除)」アイコンボタンが表示されます。
-6. 計算結果の各項目には「<span class="material-symbols-outlined">content_copy</span>
-   (コピー)」アイコンボタンが表示されます。
+4. フッターの「<span class="material-symbols-outlined">add</span> (追加)」アイコンボタンをクリックします。
+5. 入力した内容がリストに追加され、酸素および窒素の使用量が計算されます。リスト内の各項目には「<span class="material-symbols-outlined">edit</span> (修正)」「<span class="material-symbols-outlined">delete</span> (削除)」アイコンボタンが表示されます。
+6. 計算結果の各項目には「<span class="material-symbols-outlined">content_copy</span> (コピー)」アイコンボタンが表示されます。
 7. トップアプリバーの「クリア」ボタンをクリックすると、入力内容と計算結果がクリアされます。
 
 ## 設定
 
-トップアプリバーの「<span class="material-symbols-outlined">settings</span>
-(設定)」アイコンをクリックすると、設定ダイアログを開くことができます。
+トップアプリバーの「<span class="material-symbols-outlined">settings</span> (設定)」アイコンをクリックすると、設定ダイアログを開くことができます。
 
 ### FiO2モード
 
@@ -44,8 +37,7 @@ Material Design 3
 ### 室内気不使用
 
 - FiO2モードが有効な場合にのみ使用できます。
-- 室内気 (Room Air)
-  を使用せず、配管からの合成空気を使用する場合に、この設定を有効にします。
+- 室内気 (Room Air) を使用せず、配管からの合成空気を使用する場合に、この設定を有効にします。
 - 一部の人工呼吸器で使用します。
 
 ## 使用例
@@ -61,84 +53,77 @@ Material Design 3
 ## 技術スタック
 
 - 言語: TypeScript
-- ランタイム/ツールチェーン: Deno
-- CSSフレームワーク: TailwindCSS
+- フレームワーク: Svelte 4
+- ビルドツール: Vite
+- CSSフレームワーク: TailwindCSS v3
 - アイコン: Material Symbols (ローカルホスティング)
-- バンドラ: esbuild (Deno経由)
+- バンドラ: Vite (via Rollup)
 
 ## ディレクトリ構造
 
 ```
 gascalc/
 ├── dist/
-│   └── gascalc.html  (ビルド成果物)
-├── docs/
-│   └── refactoring-plan.md
-├── memory-bank/
-│   ├── activeContext.md
-│   ├── productContext.md
-│   ├── progress.md
-│   ├── projectbrief.md
-│   ├── systemPatterns.md
-│   └── techContext.md
-├── scripts/
-│   └── clean_temp.ts (一時ファイル削除用スクリプト)
+│   └── gascalc.html       (ビルド成果物: 単一HTMLファイル)
 ├── src/
 │   ├── assets/
-│   │   └── fonts/
-│   │       ├── material-symbols.css       (Material Symbols用CSS)
-│   │       └── MaterialSymbolsOutlined.ttf (Material Symbolsフォントファイル)
-│   ├── index.html         (HTMLテンプレート)
-│   ├── main.ts            (アプリケーションエントリーポイント)
-│   ├── styles/
-│   │   └── input.css      (TailwindCSS入力ファイル)
+│   │   └── fonts/         (Material Symbols フォントファイル)
+│   ├── components/        (Svelte コンポーネント)
+│   │   ├── EntryList.svelte
+│   │   ├── SettingsDialog.svelte
+│   │   └── UsageResult.svelte
 │   ├── types/
 │   │   └── entry.ts       (型定義)
-│   └── utils/
-│       ├── calculation.ts (計算ロジック)
-│       └── dom.ts         (DOM操作)
+│   ├── utils/
+│   │   └── calculation.ts (計算ロジック)
+│   ├── App.svelte         (メインコンポーネント: 状態管理)
+│   ├── app.css            (Tailwindディレクティブを含むCSS)
+│   ├── main.ts            (エントリポイント)
+│   └── vite-env.d.ts      (Vite型定義)
+├── index.html             (HTMLテンプレート)
 ├── tests/
 │   └── calculation.test.ts (計算ロジックのテスト)
 ├── .gitignore
-├── build.ts               (ビルドスクリプト)
-├── deno.jsonc             (Deno設定ファイル)
-├── README.md
-└── tailwind.config.js     (TailwindCSS設定ファイル)
+├── deno.jsonc             (Deno設定・タスクランナー)
+├── package.json           (npm依存関係)
+├── postcss.config.js      (PostCSS設定)
+├── tailwind.config.js     (TailwindCSS設定)
+├── tsconfig.json          (TypeScript設定)
+├── vite.config.ts         (Vite設定)
+└── README.md
 ```
 
 ## ビルド方法
 
-以下の Deno タスクを使用します (`deno.jsonc` で定義)。
+npm コマンドツールを使用できます (Deno 環境でも `deno task` でラップされたコマンドを使用可能)。
 
-- **統合ビルド (CSSビルド、JSバンドル、アセットインライン化、単一HTML生成):**
+- **セットアップ (依存関係のインストール):**
   ```bash
-  deno task build
+  npm install
   ```
-  ビルド成果物は `dist/gascalc.html`
-  という単一のHTMLファイルとして出力されます。
-  このファイルには、CSS、JavaScript、アイコンフォントがすべてインラインで埋め込まれています。
 
-- **開発モード (TailwindCSSのwatch):**
+- **開発サーバー起動:**
   ```bash
+  npm run dev
+  # または
   deno task dev
   ```
-  開発中は `src/index.html`
-  を直接ブラウザで開いて確認します（この場合、TailwindCSSの変更は
-  `src/styles/output.css` に反映されます）。
+  `http://localhost:5173` で開発サーバーが起動します。
 
-## 実行方法
-
-1. プロジェクトをビルドします: `deno task build`
-2. 生成された単一ファイル `dist/gascalc.html` をブラウザで開きます。
+- **統合ビルド (単一HTML生成):**
+  ```bash
+  npm run build
+  # または
+  deno task build
+  ```
+  ビルド成果物は `dist/gascalc.html` という単一のHTMLファイルとして出力されます。
+  このファイルには、CSS、JavaScript、アイコンフォントがすべてインラインで埋め込まれています。
 
 ## ライセンス
 
-このプロジェクトはMITライセンスです。詳細については、`LICENSE`
-ファイルを参照してください。
+このプロジェクトはMITライセンスです。詳細については、`LICENSE` ファイルを参照してください。
 
-また、このプロジェクトで使用しているアセットの一部（例: Material
-Symbols）は、Apache License 2.0
-の下でライセンスされています。これらのアセットに関するライセンス情報は、該当アセットの配布元、およびビルドされたHTMLファイル内のコメントを参照してください。
+また、このプロジェクトで使用しているアセットの一部（例: Material Symbols）は、Apache License 2.0 の下でライセンスされています。これらのアセットに関するライセンス情報は、該当アセットの配布元、およびビルドされたHTMLファイル内のコメントを参照してください。
 
 ## 注意点
 
