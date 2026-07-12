@@ -4,21 +4,12 @@
     "dev": "npm run dev"
   },
   "compilerOptions": {
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "dom.asynciterable",
-      "deno.ns"
-    ]
+    "lib": ["dom", "dom.iterable", "dom.asynciterable", "deno.ns"]
   },
   "lint": {
     "rules": {
-      "tags": [
-        "recommended"
-      ],
-      "exclude": [
-        "no-explicit-any"
-      ]
+      "tags": ["recommended"],
+      "exclude": ["no-explicit-any"]
     }
   },
   "fmt": {

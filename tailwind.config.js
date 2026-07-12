@@ -6,4 +6,4 @@ export default {
     extend: {}, // 必要に応じてテーマを拡張
   },
   plugins: [], // 必要に応じてプラグインを追加
-}
+};

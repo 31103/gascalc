@@ -6,8 +6,7 @@
 Material Design 3 に準拠したモダンなUI/UXに刷新され、Svelte フレームワークを採用することで開発体験と保守性が向上しました。
 ビルド成果物は単一のHTMLファイルとして提供され、ローカル環境でインターネット接続なしに動作します。
 
-[ガス使用量計算ツール（デモ）](https://31103.github.io/ijitools/gascalc/gascalc.html)
-(注意: デモはリファクタリング前のバージョンの可能性があります)
+**デモ**: https://31103.github.io/gascalc/gascalc.html
 
 ## 使用方法
 
@@ -58,6 +57,11 @@ Material Design 3 に準拠したモダンなUI/UXに刷新され、Svelte フ�
 - CSSフレームワーク: TailwindCSS v3
 - アイコン: Material Symbols (ローカルホスティング)
 - バンドラ: Vite (via Rollup)
+- テスト: Vitest
+- Lint / Format: Biome
+- コミット検証: commitlint + husky
+- CI/CD: GitHub Actions
+- リリース管理: release-please
 
 ## ディレクトリ構造
 
@@ -118,6 +122,18 @@ npm コマンドツールを使用できます (Deno 環境でも `deno task` �
   ```
   ビルド成果物は `dist/gascalc.html` という単一のHTMLファイルとして出力されます。
   このファイルには、CSS、JavaScript、アイコンフォントがすべてインラインで埋め込まれています。
+
+## テスト・Lint
+
+```bash
+npm test
+npm run lint
+```
+
+## CI/CD
+
+GitHub Actions により、push / pull request 時の Lint・テスト・ビルド、
+GitHub Pagesへのデプロイ、リリース成果物の作成を自動化しています。
 
 ## ライセンス
 
