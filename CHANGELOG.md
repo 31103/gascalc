@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.0](https://github.com/31103/gascalc/compare/v1.1.0...v1.2.0) (2026-07-12)
+
+
+### Features
+
+* add P/F ratio calculation ([7e20c92](https://github.com/31103/gascalc/commit/7e20c92b478cf29037ae593fe63e32395f795ac8))
+* complete Svelte feature parity ([617a919](https://github.com/31103/gascalc/commit/617a919e483795b7afeff45764add1bf7dfab10d))
+* modernize receipt-month gas calculation ([e5e2453](https://github.com/31103/gascalc/commit/e5e2453b9b61bc29a39961f6de8f4773389d3e40))
+* redesign UI for compact workflows ([0583c5f](https://github.com/31103/gascalc/commit/0583c5f1124defede2bea8fcf79729118c958a08))
+
 ## [1.1.0](https://github.com/31103/gascalc/compare/v1.0.0...v1.1.0) (2026-03-27)
 
 
