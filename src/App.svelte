@@ -3,10 +3,13 @@
     import EntryList from "./components/EntryList.svelte";
     import UsageResult from "./components/UsageResult.svelte";
     import SettingsDialog from "./components/SettingsDialog.svelte";
+    import PfRatioDialog from "./components/PfRatioDialog.svelte";
     import { calculateUsage } from "./utils/calculation.ts";
     import type { BillingDateTime, Entry } from "./types/entry.ts";
-    import { parseBillingDateTime } from "./utils/billingDateTime.ts";
+    import { isSameBillingDateTime, parseBillingDateTime } from "./utils/billingDateTime.ts";
     import { upsertEntry } from "./utils/entries.ts";
+    import type { OxygenMeasurement } from "./types/pfRatio.ts";
+    import { upsertMeasurement } from "./utils/pfRatio.ts";
 
     // --- State ---
     let entries: Entry[] = $state([]);
@@ -15,6 +18,9 @@
     let isSettingsOpen = $state(false);
     let darkMode = $state(false);
     let editingIndex: number | null = $state(null);
+    let measurements: OxygenMeasurement[] = $state([]);
+    let isPfDialogOpen = $state(false);
+    let editingMeasurement: OxygenMeasurement | null = $state(null);
 
     // Inputs
     let dateTimeStr = $state("");
@@ -26,6 +32,7 @@
     let flowInputRef = $state<HTMLInputElement>();
     let fio2InputRef = $state<HTMLInputElement>();
     let settingsButtonRef = $state<HTMLButtonElement>();
+    let pfButtonRef = $state<HTMLButtonElement>();
 
     // Derived State
     let lastDate: BillingDateTime | null = $state(null);
@@ -153,11 +160,14 @@
 
     function clearAll() {
         entries = [];
+        measurements = [];
         lastDate = null;
         dateTimeStr = "";
         flowStr = "";
         fio2Str = "";
         editingIndex = null;
+        editingMeasurement = null;
+        isPfDialogOpen = false;
         clearNotification();
         dateTimeInputRef?.focus();
     }
@@ -205,6 +215,41 @@
         if (notificationTimer) clearTimeout(notificationTimer);
         notificationTimer = null;
         notification = null;
+    }
+
+    function openNewPfMeasurement() {
+        editingMeasurement = null;
+        isPfDialogOpen = true;
+    }
+
+    function openPfMeasurementEdit(measurement: OxygenMeasurement) {
+        editingMeasurement = measurement;
+        isPfDialogOpen = true;
+    }
+
+    function closePfDialog() {
+        isPfDialogOpen = false;
+        editingMeasurement = null;
+    }
+
+    function savePfMeasurement(
+        measurement: OxygenMeasurement,
+        original: OxygenMeasurement | null,
+    ) {
+        const remaining = original
+            ? measurements.filter(
+                  (current) =>
+                      !isSameBillingDateTime(current.dateTime, original.dateTime),
+              )
+            : measurements;
+        measurements = upsertMeasurement(remaining, measurement);
+    }
+
+    function deletePfMeasurement(measurement: OxygenMeasurement) {
+        measurements = measurements.filter(
+            (current) =>
+                !isSameBillingDateTime(current.dateTime, measurement.dateTime),
+        );
     }
 
     // Key handlers
@@ -304,6 +349,11 @@
                 <UsageResult
                     {usageData}
                     {noRoomAirMode}
+                    {entries}
+                    {fio2Mode}
+                    {measurements}
+                    onEditMeasurement={openPfMeasurementEdit}
+                    onDeleteMeasurement={deletePfMeasurement}
                     notify={(message, kind) => showNotification(message, kind)}
                 />
             </div>
@@ -315,80 +365,108 @@
 <footer
     class="fixed bottom-0 left-0 right-0 bg-[var(--md-surface-container)] p-4 shadow-[0_-2px_8px_rgba(0,0,0,0.1)] z-40"
 >
-    <div class="max-w-screen-xl mx-auto flex flex-wrap gap-3 items-end">
-        <!-- Date Time Input -->
-        <div class="flex-grow min-w-[120px]">
-            <label
-                for="dateTime"
-                class="block md-label-small mb-1 text-[var(--md-on-surface-variant)]"
-                >日付時刻 (DDHHMM)</label
-            >
-            <input
-                type="text"
-                id="dateTime"
-                class="input-field w-full"
-                placeholder="例: 20907"
-                inputmode="numeric"
-                bind:value={dateTimeStr}
-                bind:this={dateTimeInputRef}
-                onkeydown={onDateTimeEnter}
-            />
-        </div>
-
-        <!-- Flow Input -->
-        <div class="flex-grow min-w-[100px]">
-            <label
-                for="flow"
-                class="block md-label-small mb-1 text-[var(--md-on-surface-variant)]"
-                >流量 (L/min)</label
-            >
-            <input
-                type="number"
-                id="flow"
-                class="input-field w-full"
-                placeholder="例: 1.5"
-                step="0.1"
-                inputmode="decimal"
-                bind:value={flowStr}
-                bind:this={flowInputRef}
-                onkeydown={onFlowEnter}
-            />
-        </div>
-
-        <!-- FiO2 Input -->
-        {#if fio2Mode}
-            <div class="flex-grow min-w-[80px]" id="fio2InputGroup">
+    <div class="footer-input-layout max-w-screen-xl mx-auto">
+        <div class="footer-fields">
+            <!-- Date Time Input -->
+            <div>
                 <label
-                    for="fio2Input"
+                    for="dateTime"
                     class="block md-label-small mb-1 text-[var(--md-on-surface-variant)]"
-                    >FiO2 (%)</label
+                    >日付時刻 (DDHHMM)</label
+                >
+                <input
+                    type="text"
+                    id="dateTime"
+                    class="input-field w-full"
+                    placeholder="例: 20907"
+                    inputmode="numeric"
+                    bind:value={dateTimeStr}
+                    bind:this={dateTimeInputRef}
+                    onkeydown={onDateTimeEnter}
+                />
+            </div>
+
+            <!-- Flow Input -->
+            <div>
+                <label
+                    for="flow"
+                    class="block md-label-small mb-1 text-[var(--md-on-surface-variant)]"
+                    >流量 (L/min)</label
                 >
                 <input
                     type="number"
-                    id="fio2Input"
+                    id="flow"
                     class="input-field w-full"
-                    placeholder="21-100"
-                    min="21"
-                    max="100"
-                    inputmode="numeric"
-                    bind:value={fio2Str}
-                    bind:this={fio2InputRef}
-                    onkeydown={onFio2Enter}
+                    placeholder="例: 1.5"
+                    step="0.1"
+                    inputmode="decimal"
+                    bind:value={flowStr}
+                    bind:this={flowInputRef}
+                    onkeydown={onFlowEnter}
                 />
             </div>
-        {/if}
 
-        <!-- Add Button -->
-        <button
-            class="md-fab md-fab-primary mb-1 ml-auto"
-            id="addEntryBtn"
-            onclick={addEntry}
-            title="追加"
-        >
-            <span class="material-symbols-outlined">add</span>
-        </button>
+            <!-- FiO2 Input -->
+            {#if fio2Mode}
+                <div id="fio2InputGroup">
+                    <label
+                        for="fio2Input"
+                        class="block md-label-small mb-1 text-[var(--md-on-surface-variant)]"
+                        >FiO2 (%)</label
+                    >
+                    <input
+                        type="number"
+                        id="fio2Input"
+                        class="input-field w-full"
+                        placeholder="21-100"
+                        min="21"
+                        max="100"
+                        inputmode="numeric"
+                        bind:value={fio2Str}
+                        bind:this={fio2InputRef}
+                        onkeydown={onFio2Enter}
+                    />
+                </div>
+            {/if}
+        </div>
+
+        <div class="footer-actions">
+            <!-- Add Button -->
+            <button
+                class="md-fab md-fab-primary"
+                id="addEntryBtn"
+                onclick={addEntry}
+                title="追加"
+            >
+                <span class="material-symbols-outlined">add</span>
+            </button>
+
+            <!-- P/F Ratio Button -->
+            <button
+                class="btn-outlined"
+                type="button"
+                onclick={openNewPfMeasurement}
+                bind:this={pfButtonRef}
+                aria-label="P/F比を入力"
+            >
+                <span class="material-symbols-outlined text-xl"
+                    >monitor_heart</span
+                >
+                <span>P/F比</span>
+            </button>
+        </div>
     </div>
 </footer>
+
+<PfRatioDialog
+    isOpen={isPfDialogOpen}
+    {entries}
+    {measurements}
+    {editingMeasurement}
+    close={closePfDialog}
+    save={savePfMeasurement}
+    returnFocusTo={pfButtonRef}
+/>
 
 <!-- Snackbar -->
 <div

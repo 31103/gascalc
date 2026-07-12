@@ -47,7 +47,8 @@
   }
 
   button,
-  input {
+  input,
+  select {
     font: inherit;
   }
 }
@@ -126,6 +127,134 @@
   .input-field:focus {
     border-color: var(--md-primary);
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--md-primary) 25%, transparent);
+  }
+  .input-field.input-error {
+    border-color: var(--md-error);
+  }
+  .field-label {
+    @apply mb-1 block text-sm font-semibold;
+  }
+  .helper-text {
+    @apply text-xs leading-relaxed;
+    color: var(--md-on-surface-variant);
+  }
+  .field-error {
+    @apply mt-1 text-sm;
+    color: var(--md-error);
+  }
+  .btn-filled {
+    @apply min-h-11 rounded-full px-5 py-2 font-semibold transition;
+    background: var(--md-primary);
+    color: var(--md-on-primary);
+  }
+  .btn-filled:hover {
+    filter: brightness(0.94);
+  }
+  .btn-outlined {
+    @apply inline-flex min-h-11 items-center justify-center gap-1 rounded-full border px-3 py-2 text-sm font-semibold transition;
+    border-color: color-mix(in srgb, var(--md-outline) 65%, transparent);
+    color: var(--md-primary);
+    background: transparent;
+  }
+  .btn-outlined:hover {
+    background: color-mix(in srgb, var(--md-primary) 8%, transparent);
+  }
+  .footer-input-layout {
+    @apply flex flex-col gap-3 lg:flex-row lg:items-end;
+  }
+  .footer-fields {
+    @apply grid min-w-0 flex-1 gap-3;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  }
+  .footer-actions {
+    @apply flex items-center justify-end gap-3;
+  }
+  .pf-dialog {
+    @apply max-h-[calc(100dvh-2rem)] max-w-lg overflow-y-auto;
+  }
+  .measurement-option {
+    @apply mt-2 flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border p-3;
+    border-color: color-mix(in srgb, var(--md-outline) 45%, transparent);
+  }
+  .measurement-option:has(input:checked) {
+    border-color: var(--md-primary);
+    background: color-mix(in srgb, var(--md-primary) 8%, transparent);
+  }
+  .measurement-option input {
+    @apply h-5 w-5 shrink-0 accent-blue-600;
+  }
+  .measurement-option span {
+    @apply flex flex-col;
+  }
+  .measurement-option small {
+    @apply text-xs;
+    color: var(--md-on-surface-variant);
+  }
+  .measurement-option.compact {
+    @apply min-h-12 py-2;
+  }
+  .unit-input {
+    @apply flex items-center gap-2;
+  }
+  .unit-input span {
+    @apply min-w-12 text-sm font-semibold;
+  }
+  .result-card {
+    @apply p-4;
+  }
+  .result-day-group {
+    @apply space-y-2;
+  }
+  .result-day-heading {
+    @apply px-1 text-sm font-semibold;
+    color: var(--md-on-surface-variant);
+  }
+  .pf-history-card {
+    border-left: 3px solid
+      color-mix(in srgb, var(--md-primary) 55%, transparent);
+  }
+  .result-notice {
+    @apply mt-3 rounded-xl p-3 text-sm;
+    color: var(--md-error);
+    background: color-mix(in srgb, var(--md-error) 9%, transparent);
+  }
+  .result-notice.neutral {
+    color: var(--md-on-surface);
+    background: color-mix(in srgb, var(--md-primary) 9%, transparent);
+  }
+  .result-grid {
+    @apply mt-3 grid gap-2;
+  }
+  .pf-result {
+    @apply rounded-xl border p-3;
+    border-color: color-mix(in srgb, var(--md-outline) 35%, transparent);
+  }
+  .pf-number {
+    @apply my-1 text-3xl font-bold;
+    color: var(--md-primary);
+  }
+  .pf-number span {
+    @apply text-sm font-semibold;
+    color: var(--md-on-surface-variant);
+  }
+  .estimate-badge {
+    @apply rounded-full px-2 py-0.5 text-xs font-semibold;
+    color: var(--md-on-surface-variant);
+    background: var(--md-surface-container);
+  }
+  .calculation-details {
+    @apply mt-4 p-4 text-sm;
+  }
+  .calculation-details.compact {
+    @apply mt-0 rounded-xl border p-3 shadow-none;
+    background: transparent;
+  }
+  .calculation-details summary {
+    @apply cursor-pointer font-semibold;
+  }
+  .calculation-details p {
+    @apply mt-2 leading-relaxed;
+    color: var(--md-on-surface-variant);
   }
 
   .md-fab {
