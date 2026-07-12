@@ -4,6 +4,7 @@ import {
   formatBillingDateTime,
   formatBillingDateTimeForInput,
   parseBillingDateTime,
+  previewBillingDateTime,
   toBillingMinutes,
 } from "../src/utils/billingDateTime.ts";
 
@@ -23,6 +24,19 @@ describe("billing date-time", () => {
       minute: 7,
     });
     expect(parseBillingDateTime("907")).toEqual({ day: 1, hour: 9, minute: 7 });
+  });
+
+  it("describes how an input will be interpreted", () => {
+    expect(previewBillingDateTime("", 18).message).toBe(
+      "時刻のみの場合は18日として追加します",
+    );
+    expect(previewBillingDateTime("907", 18).message).toBe(
+      "18日 09:07として追加します",
+    );
+    expect(previewBillingDateTime("20907", 18).message).toBe(
+      "2日 09:07として追加します",
+    );
+    expect(previewBillingDateTime("2460", 18).kind).toBe("invalid");
   });
 
   it.each([

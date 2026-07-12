@@ -2,7 +2,7 @@
   import { tick } from "svelte";
   import type { Entry } from "../types/entry.ts";
   import type { OxygenMeasurement, OxygenMeasurementKind } from "../types/pfRatio.ts";
-  import { formatBillingDateTimeForInput, parseBillingDateTime } from "../utils/billingDateTime.ts";
+  import { formatBillingDateTimeForInput, parseBillingDateTime, previewBillingDateTime } from "../utils/billingDateTime.ts";
 
   interface Props {
     isOpen: boolean;
@@ -30,6 +30,10 @@
   let dateTimeError = $state("");
   let valueError = $state("");
   let dialog = $state<HTMLDivElement>();
+  const fallbackDay = $derived(
+    measurements.at(-1)?.dateTime.day ?? entries.at(-1)?.dateTime.day ?? 1,
+  );
+  const dateTimePreview = $derived(previewBillingDateTime(dateTimeStr, fallbackDay));
 
   $effect(() => {
     if (!isOpen) return;
@@ -54,8 +58,6 @@
   function submitMeasurement() {
     dateTimeError = "";
     valueError = "";
-    const fallbackDay =
-      measurements.at(-1)?.dateTime.day ?? entries.at(-1)?.dateTime.day ?? 1;
     const dateTime = parseBillingDateTime(dateTimeStr.trim(), fallbackDay);
     if (!dateTime) {
       dateTimeError = "日付時刻をDDHHMMまたはHHMMの数字で入力してください（例：2日9時7分は20907）。";
@@ -142,7 +144,9 @@
             aria-invalid={Boolean(dateTimeError)}
             bind:value={dateTimeStr}
           />
-          <p id="pfDateTimeHelp" class="helper-text">DDHHMMまたはHHMM（2日9時7分は20907）</p>
+          <p id="pfDateTimeHelp" class:preview-error={dateTimePreview.kind === "invalid"} class="date-preview">
+            <span class="material-symbols-outlined">{dateTimePreview.kind === "invalid" ? "error" : "event"}</span>{dateTimePreview.message}
+          </p>
           {#if dateTimeError}<p id="pfDateTimeError" class="field-error">{dateTimeError}</p>{/if}
         </div>
 

@@ -19,6 +19,48 @@ async function addEntry(dateTime: string, flow: string) {
 }
 
 describe("App", () => {
+  it("shows the fallback day and a live date-time interpretation", async () => {
+    render(App);
+    expect(
+      screen.getByText("時刻のみの場合は1日として追加します"),
+    ).toBeTruthy();
+    await addEntry("030900", "1");
+    expect(
+      screen.getByText("時刻のみの場合は3日として追加します"),
+    ).toBeTruthy();
+    await fireEvent.input(screen.getByLabelText("日付時刻 (DDHHMM)"), {
+      target: { value: "1015" },
+    });
+    expect(screen.getByText("3日 10:15として追加します")).toBeTruthy();
+  });
+
+  it("opens the beginner help and returns focus when closed", async () => {
+    render(App);
+    const trigger = screen.getByRole("button", { name: "使い方を開く" });
+    await fireEvent.click(trigger);
+    expect(screen.getByRole("dialog", { name: "使い方" })).toBeTruthy();
+    expect(screen.getByText("時刻だけでも入力できます")).toBeTruthy();
+    await fireEvent.keyDown(screen.getByRole("dialog", { name: "使い方" }), {
+      key: "Escape",
+    });
+    expect(screen.queryByRole("dialog", { name: "使い方" })).toBeNull();
+    expect(document.activeElement).toBe(trigger);
+  });
+
+  it("asks for confirmation before clearing entered data", async () => {
+    render(App);
+    await addEntry("010900", "1");
+    await fireEvent.click(screen.getByRole("button", { name: "全クリア" }));
+    expect(
+      screen.getByRole("alertdialog", { name: "すべてクリアしますか？" }),
+    ).toBeTruthy();
+    await fireEvent.click(screen.getByRole("button", { name: "キャンセル" }));
+    expect(screen.getByText(/1日09時00分 1L\/min/)).toBeTruthy();
+    await fireEvent.click(screen.getByRole("button", { name: "全クリア" }));
+    await fireEvent.click(screen.getByRole("button", { name: "すべてクリア" }));
+    expect(screen.getByText("まだ入力がありません")).toBeTruthy();
+  });
+
   it("keeps P/F input hidden until the secondary button opens its dialog", async () => {
     render(App);
     const trigger = screen.getByRole("button", { name: "P/F比を入力" });
@@ -164,9 +206,15 @@ describe("App", () => {
     await addEntry("010900", "1");
     await fireEvent.click(screen.getByTitle("設定"));
     await fireEvent.click(screen.getByLabelText("FiO2モード"));
+    expect(
+      screen.getByRole("alertdialog", { name: "計算条件を変更しますか？" }),
+    ).toBeTruthy();
+    await fireEvent.click(
+      screen.getByRole("button", { name: "変更してクリア" }),
+    );
     expect(screen.getByText("まだ入力がありません")).toBeTruthy();
     expect(
-      screen.getByText("計算条件を変更したため、入力をクリアしました"),
+      screen.getByText("計算条件を変更し、入力をクリアしました"),
     ).toBeTruthy();
   });
 

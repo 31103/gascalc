@@ -51,6 +51,39 @@ export function formatBillingDateTimeForInput(value: BillingDateTime): string {
   return `${value.day}${String(value.hour).padStart(2, "0")}${String(value.minute).padStart(2, "0")}`;
 }
 
+export type BillingDateTimePreview =
+  | { kind: "empty"; day: number; message: string }
+  | { kind: "valid"; value: BillingDateTime; message: string }
+  | { kind: "invalid"; message: string };
+
+export function previewBillingDateTime(
+  input: string,
+  fallbackDay = 1,
+): BillingDateTimePreview {
+  const normalized = input.trim();
+  if (!normalized) {
+    return {
+      kind: "empty",
+      day: fallbackDay,
+      message: `時刻のみの場合は${fallbackDay}日として追加します`,
+    };
+  }
+
+  const value = parseBillingDateTime(normalized, fallbackDay);
+  if (!value) {
+    return {
+      kind: "invalid",
+      message: "DDHHMMまたはHHMMで入力してください（例：2日9時7分は20907）",
+    };
+  }
+
+  return {
+    kind: "valid",
+    value,
+    message: `${value.day}日 ${String(value.hour).padStart(2, "0")}:${String(value.minute).padStart(2, "0")}として追加します`,
+  };
+}
+
 export function endOfBillingDayMinutes(day: number): number {
   return day * MINUTES_PER_DAY;
 }
