@@ -396,9 +396,31 @@ describe("App", () => {
     await fireEvent.click(
       screen.getByLabelText("1日の酸素濃度方式・合成空気のガス使用量をコピー"),
     );
-    expect(writeText).toHaveBeenCalledWith(
-      "402400+552010/5760*1\n402400+552010/8640*1",
+    expect(writeText).toHaveBeenCalledWith("404520+233203/8640+552010/5760*1");
+  });
+
+  it("copies the concentration template without nitrogen for room air", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+    render(App);
+    await selectCalculationMethod("総流量・酸素濃度から計算");
+    await fireEvent.input(screen.getByLabelText("日付時刻 (DDHHMM)"), {
+      target: { value: "010000" },
+    });
+    await fireEvent.input(screen.getByLabelText("流量 (L/min)"), {
+      target: { value: "10" },
+    });
+    await fireEvent.input(screen.getByLabelText("設定酸素濃度 (%)"), {
+      target: { value: "40" },
+    });
+    await fireEvent.click(screen.getByTitle("追加"));
+    await fireEvent.click(
+      screen.getByLabelText("1日の酸素濃度方式・室内空気のガス使用量をコピー"),
     );
+    expect(writeText).toHaveBeenCalledWith("404520+552010/3463.3*1");
   });
 
   it("does not let an older notification timer clear a newer message", async () => {

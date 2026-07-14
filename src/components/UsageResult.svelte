@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Entry } from "../types/entry.ts";
+  import type { CalculationMode, Entry } from "../types/entry.ts";
   import { CALCULATION_MODES, calculationModeLabel } from "../types/entry.ts";
   import type { OxygenMeasurement } from "../types/pfRatio.ts";
   import { formatBillingDateTime } from "../utils/billingDateTime.ts";
@@ -36,8 +36,8 @@
     ).sort((left, right) => left - right),
   );
 
-  async function copyUsage(oxygen: number, nitrogen: number, includeNitrogen: boolean) {
-    const text = formatUsageForClipboard(oxygen, nitrogen, includeNitrogen);
+  async function copyUsage(oxygen: number, nitrogen: number, mode: CalculationMode) {
+    const text = formatUsageForClipboard(oxygen, nitrogen, mode);
     const copied = await copyText(text);
     notify(
       copied ? "クリップボードにコピーしました" : "コピーに失敗しました",
@@ -67,7 +67,7 @@
                     酸素 {amounts.oxygen}L
                     {#if mode === "fio2-no-room-air" && amounts.nitrogen > 0} / 窒素 {amounts.nitrogen}L{/if}
                   </span>
-                  <button class="btn-icon primary" onclick={() => copyUsage(amounts.oxygen, amounts.nitrogen, mode === "fio2-no-room-air")} title="コピー" aria-label={`${day}日の${calculationModeLabel(mode)}のガス使用量をコピー`}>
+                  <button class="btn-icon primary" onclick={() => copyUsage(amounts.oxygen, amounts.nitrogen, mode)} title="コピー" aria-label={`${day}日の${calculationModeLabel(mode)}のガス使用量をコピー`}>
                     <span class="material-symbols-outlined">content_copy</span>
                   </button>
                 </div>
