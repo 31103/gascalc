@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.3.0](https://github.com/31103/gascalc/compare/v1.2.0...v1.3.0) (2026-07-14)
+
+
+### Features
+
+* 入力ごとの計算方式と日別集計に対応 ([940a318](https://github.com/31103/gascalc/commit/940a3189749c6b4cda0f717346bd4616c3baceab))
+* 入力ごとの計算方式と日別集計に対応 ([ddec7b7](https://github.com/31103/gascalc/commit/ddec7b7224d7beacf1b0ee5f2fb4f12b8dc15b69))
+
+
+### Bug Fixes
+
+* 酸素濃度方式のコピー形式を修正 ([85c39c4](https://github.com/31103/gascalc/commit/85c39c45786e183029c40314f818c047c6a86711))
+
 ## [1.2.0](https://github.com/31103/gascalc/compare/v1.1.0...v1.2.0) (2026-07-12)
 
 
