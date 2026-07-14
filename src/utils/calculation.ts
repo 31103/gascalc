@@ -1,4 +1,4 @@
-import type { Entry } from "../types/entry.ts";
+import type { CalculationMode, Entry } from "../types/entry.ts";
 import { endOfBillingDayMinutes, toBillingMinutes } from "./billingDateTime.ts";
 
 /**
@@ -9,6 +9,9 @@ export interface DailyUsage {
   nitrogen: number;
 }
 
+export type UsageByMode = Partial<Record<CalculationMode, DailyUsage>>;
+export type UsageByDayAndMode = Record<number, UsageByMode>;
+
 // --- 定数 ---
 const PERCENT_TO_DECIMAL = 0.01;
 const NON_OXYGEN_GAS_RATIO_IN_AIR = 0.79; // 空気中の窒素+アルゴンの割合 (FiO2計算用)
@@ -18,21 +21,17 @@ const DEFAULT_FIO2_IN_AIR = 21; // 空気中の酸素濃度(%)
  * 特定の期間と設定に基づいてガス使用量を計算する
  * @param entry 計算対象のエントリ
  * @param durationMin 計算期間 (分)
- * @param fio2Mode FiO2モードが有効か
- * @param noRoomAirMode 室内気不使用モードが有効か
  * @returns 酸素と窒素の使用量
  */
 function calculateGasAmountsForPeriod(
   entry: Entry,
   durationMin: number,
-  fio2Mode: boolean,
-  noRoomAirMode: boolean,
 ): { oxygen: number; nitrogen: number } {
   let oxygenAmount = 0;
   let nitrogenAmount = 0;
 
-  if (fio2Mode) {
-    if (noRoomAirMode) {
+  if (entry.mode !== "standard") {
+    if (entry.mode === "fio2-no-room-air") {
       // 室内気不使用モード
       oxygenAmount = entry.fio2 * PERCENT_TO_DECIMAL * entry.flow * durationMin;
       nitrogenAmount =
@@ -65,31 +64,25 @@ function calculateGasAmountsForPeriod(
  * @param nitrogen 窒素使用量
  */
 function addUsageToDailyRecord(
-  dailyRecord: Record<number, DailyUsage>,
+  dailyRecord: UsageByDayAndMode,
   date: number,
+  mode: CalculationMode,
   oxygen: number,
   nitrogen: number,
 ): void {
-  if (!dailyRecord[date]) {
-    dailyRecord[date] = { oxygen: 0, nitrogen: 0 };
-  }
-  dailyRecord[date].oxygen += oxygen;
-  dailyRecord[date].nitrogen += nitrogen;
+  dailyRecord[date] ??= {};
+  dailyRecord[date][mode] ??= { oxygen: 0, nitrogen: 0 };
+  dailyRecord[date][mode].oxygen += oxygen;
+  dailyRecord[date][mode].nitrogen += nitrogen;
 }
 
 /**
  * 入力されたエントリに基づいて日ごとのガス使用量を計算する
  * @param entries 入力エントリの配列 (日付時刻順にソート済み)
- * @param fio2Mode FiO2モードが有効か
- * @param noRoomAirMode 室内気不使用モードが有効か
- * @returns 日付をキー、使用量 (酸素・窒素) を値とするオブジェクト
+ * @returns 日付と計算モードごとの使用量
  */
-export function calculateUsage(
-  entries: Entry[],
-  fio2Mode: boolean,
-  noRoomAirMode: boolean,
-): Record<number, DailyUsage> {
-  const usage: Record<number, DailyUsage> = {};
+export function calculateUsage(entries: Entry[]): UsageByDayAndMode {
+  const usage: UsageByDayAndMode = {};
 
   if (entries.length === 0) {
     return usage;
@@ -125,13 +118,12 @@ export function calculateUsage(
       const gasAmounts = calculateGasAmountsForPeriod(
         currentEntry,
         timeToCalculateMin,
-        fio2Mode,
-        noRoomAirMode,
       );
 
       addUsageToDailyRecord(
         usage,
         loopCurrentDate,
+        currentEntry.mode,
         gasAmounts.oxygen,
         gasAmounts.nitrogen,
       );
@@ -144,8 +136,11 @@ export function calculateUsage(
   // 結果を小数点以下1桁に丸める
   Object.keys(usage).forEach((dateKey) => {
     const dateNum = parseInt(dateKey, 10);
-    usage[dateNum].oxygen = Math.round(usage[dateNum].oxygen * 10) / 10;
-    usage[dateNum].nitrogen = Math.round(usage[dateNum].nitrogen * 10) / 10;
+    for (const amounts of Object.values(usage[dateNum])) {
+      if (!amounts) continue;
+      amounts.oxygen = Math.round(amounts.oxygen * 10) / 10;
+      amounts.nitrogen = Math.round(amounts.nitrogen * 10) / 10;
+    }
   });
 
   return usage;

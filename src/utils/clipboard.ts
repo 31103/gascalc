@@ -1,15 +1,20 @@
+import type { CalculationMode } from "../types/entry.ts";
+
 export function formatUsageForClipboard(
   oxygen: number,
   nitrogen: number,
-  includeNitrogen: boolean,
+  mode: CalculationMode,
 ): string {
   const format = (value: number) =>
     value % 1 === 0 ? String(value) : value.toFixed(1);
-  let text = `402400+552010/${format(oxygen)}*1`;
-  if (includeNitrogen && nitrogen > 0) {
-    text += `\n402400+552010/${format(nitrogen)}*1`;
+  if (mode === "standard") {
+    return `402400+552010/${format(oxygen)}*1`;
   }
-  return text;
+  const nitrogenPart =
+    mode === "fio2-no-room-air" && nitrogen > 0
+      ? `+233203/${format(nitrogen)}`
+      : "";
+  return `404520${nitrogenPart}+552010/${format(oxygen)}*1`;
 }
 
 function fallbackCopy(text: string): boolean {

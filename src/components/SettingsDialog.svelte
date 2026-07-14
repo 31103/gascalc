@@ -4,25 +4,17 @@
   interface Props {
     isOpen: boolean;
     darkMode: boolean;
-    fio2Mode: boolean;
-    noRoomAirMode: boolean;
     close: () => void;
     returnFocusTo?: HTMLElement;
     onDarkModeChange: (enabled: boolean) => void;
-    onFio2ModeChange: (enabled: boolean) => void;
-    onNoRoomAirModeChange: (enabled: boolean) => void;
   }
 
   let {
     isOpen = $bindable(),
     darkMode,
-    fio2Mode,
-    noRoomAirMode,
     close,
     returnFocusTo,
     onDarkModeChange,
-    onFio2ModeChange,
-    onNoRoomAirModeChange,
   }: Props = $props();
   let dialog = $state<HTMLDivElement>();
   function focusOnMount(node: HTMLElement) {
@@ -85,14 +77,6 @@
         <label class="setting-row">
           <span><strong>ダークモード</strong><small>暗い配色に切り替え</small></span>
           <input aria-label="ダークモード" id="darkMode" type="checkbox" checked={darkMode} onchange={(event) => onDarkModeChange(event.currentTarget.checked)} />
-        </label>
-        <label class="setting-row">
-          <span><strong>FiO2モード</strong><small>FiO2を指定して計算</small></span>
-          <input aria-label="FiO2モード" id="fio2Mode" type="checkbox" checked={fio2Mode} onchange={(event) => onFio2ModeChange(event.currentTarget.checked)} />
-        </label>
-        <label class="setting-row">
-          <span><strong>室内気不使用</strong><small>配管からの合成空気を使用</small></span>
-          <input aria-label="室内気不使用" id="noRoomAirMode" type="checkbox" checked={noRoomAirMode} disabled={!fio2Mode} onchange={(event) => onNoRoomAirModeChange(event.currentTarget.checked)} />
         </label>
       </div>
 
