@@ -6,6 +6,11 @@ import App from "../src/App.svelte";
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
+  vi.restoreAllMocks();
+  Object.defineProperty(navigator, "clipboard", {
+    configurable: true,
+    value: undefined,
+  });
 });
 
 async function addEntry(dateTime: string, flow: string) {
@@ -18,7 +23,27 @@ async function addEntry(dateTime: string, flow: string) {
   await fireEvent.click(screen.getByTitle("追加"));
 }
 
+async function selectCalculationMethod(name: string) {
+  if (!screen.queryByLabelText(name)) {
+    await fireEvent.click(screen.getByLabelText("計算方法を変更"));
+  }
+  await fireEvent.click(screen.getByLabelText(name));
+}
+
 describe("App", () => {
+  it("keeps calculation choices collapsed until requested and collapses after adding", async () => {
+    render(App);
+    expect(screen.queryByLabelText("酸素流量から計算")).toBeNull();
+    const toggle = screen.getByLabelText("計算方法を変更");
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    await fireEvent.click(toggle);
+    expect(screen.getByLabelText("酸素流量から計算")).toBeTruthy();
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    await addEntry("010900", "1");
+    expect(screen.queryByLabelText("酸素流量から計算")).toBeNull();
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+  });
+
   it("shows the fallback day and a live date-time interpretation", async () => {
     render(App);
     expect(
@@ -55,7 +80,8 @@ describe("App", () => {
       screen.getByRole("alertdialog", { name: "すべてクリアしますか？" }),
     ).toBeTruthy();
     await fireEvent.click(screen.getByRole("button", { name: "キャンセル" }));
-    expect(screen.getByText(/1日09時00分 1L\/min/)).toBeTruthy();
+    expect(screen.getByText("1日09時00分")).toBeTruthy();
+    expect(screen.getByText("1 L/min")).toBeTruthy();
     await fireEvent.click(screen.getByRole("button", { name: "全クリア" }));
     await fireEvent.click(screen.getByRole("button", { name: "すべてクリア" }));
     expect(screen.getByText("まだ入力がありません")).toBeTruthy();
@@ -115,7 +141,7 @@ describe("App", () => {
       ),
     ).toBeTruthy();
 
-    await fireEvent.click(screen.getByLabelText("修正"));
+    await fireEvent.click(screen.getByLabelText("1日09時00分の入力を修正"));
     await fireEvent.input(screen.getByLabelText("編集する流量"), {
       target: { value: "5" },
     });
@@ -130,6 +156,99 @@ describe("App", () => {
     expect(screen.queryByText(/FiO2 32%（流量から推定）/)).toBeNull();
     expect(screen.getAllByText(/FiO2 40%（流量から推定）/)).toHaveLength(2);
     expect(screen.getByText("動脈血 PaO2：80 mmHg")).toBeTruthy();
+  });
+
+  it("shows a structured in-place editor and reveals oxygen concentration by mode", async () => {
+    render(App);
+    await addEntry("010900", "3");
+    await fireEvent.click(screen.getByLabelText("1日09時00分の入力を修正"));
+    expect(screen.getByText("使用条件を修正")).toBeTruthy();
+    expect(screen.getByLabelText("編集する日付時刻")).toBeTruthy();
+    expect(screen.queryByLabelText("編集する設定酸素濃度")).toBeNull();
+    await fireEvent.change(screen.getByLabelText("編集する計算モード"), {
+      target: { value: "fio2-room-air" },
+    });
+    expect(screen.getByLabelText("編集する設定酸素濃度")).toBeTruthy();
+    await fireEvent.click(screen.getByLabelText("キャンセル"));
+    expect(screen.queryByText("使用条件を修正")).toBeNull();
+  });
+
+  it("saves a change from oxygen flow to synthetic-air concentration mode", async () => {
+    render(App);
+    await addEntry("010000", "10");
+    await fireEvent.click(screen.getByLabelText("1日00時00分の入力を修正"));
+    await fireEvent.change(screen.getByLabelText("編集する計算モード"), {
+      target: { value: "fio2-no-room-air" },
+    });
+    await fireEvent.input(screen.getByLabelText("編集する設定酸素濃度"), {
+      target: { value: "40" },
+    });
+    await fireEvent.click(screen.getByLabelText("保存"));
+
+    expect(
+      screen.getByText("酸素濃度方式・合成空気", {
+        selector: ".mode-badge",
+      }),
+    ).toBeTruthy();
+    expect(screen.getByText(/酸素 5760L \/ 窒素 8640L/)).toBeTruthy();
+  });
+
+  it("ignores the old oxygen concentration after changing an entry to oxygen flow mode", async () => {
+    render(App);
+    await selectCalculationMethod("総流量・酸素濃度から計算");
+    await fireEvent.input(screen.getByLabelText("日付時刻 (DDHHMM)"), {
+      target: { value: "010000" },
+    });
+    await fireEvent.input(screen.getByLabelText("流量 (L/min)"), {
+      target: { value: "10" },
+    });
+    await fireEvent.input(screen.getByLabelText("設定酸素濃度 (%)"), {
+      target: { value: "40" },
+    });
+    await fireEvent.click(screen.getByTitle("追加"));
+
+    await fireEvent.click(screen.getByLabelText("1日00時00分の入力を修正"));
+    await fireEvent.change(screen.getByLabelText("編集する計算モード"), {
+      target: { value: "standard" },
+    });
+    expect(screen.queryByLabelText("編集する設定酸素濃度")).toBeNull();
+    await fireEvent.click(screen.getByLabelText("保存"));
+
+    expect(
+      screen.getByText("酸素流量方式", { selector: ".mode-badge" }),
+    ).toBeTruthy();
+    expect(screen.getByText("酸素 14400L")).toBeTruthy();
+    expect(screen.queryByText(/窒素/)).toBeNull();
+  });
+
+  it("replaces the existing timestamp with all edited condition fields", async () => {
+    render(App);
+    await addEntry("010800", "1");
+    await addEntry("011000", "2");
+    await fireEvent.click(screen.getByLabelText("1日08時00分の入力を修正"));
+    await fireEvent.input(screen.getByLabelText("編集する日付時刻"), {
+      target: { value: "011000" },
+    });
+    await fireEvent.input(screen.getByLabelText("編集する流量"), {
+      target: { value: "3" },
+    });
+    await fireEvent.change(screen.getByLabelText("編集する計算モード"), {
+      target: { value: "fio2-room-air" },
+    });
+    await fireEvent.input(screen.getByLabelText("編集する設定酸素濃度"), {
+      target: { value: "40" },
+    });
+    await fireEvent.click(screen.getByLabelText("保存"));
+
+    expect(screen.getByText("1件の入力")).toBeTruthy();
+    expect(screen.getByText("1日10時00分")).toBeTruthy();
+    expect(screen.getByText("3 L/min")).toBeTruthy();
+    expect(screen.getByText("40%")).toBeTruthy();
+    expect(
+      screen.getByText("酸素濃度方式・室内空気", {
+        selector: ".mode-badge",
+      }),
+    ).toBeTruthy();
   });
 
   it("explains invalid SpO2 next to the field", async () => {
@@ -188,7 +307,8 @@ describe("App", () => {
   it("accepts logical day 31 and calculates until its end", async () => {
     render(App);
     await addEntry("310900", "2");
-    expect(screen.getByText(/31日09時00分 2L\/min/)).toBeTruthy();
+    expect(screen.getByText("31日09時00分")).toBeTruthy();
+    expect(screen.getByText("2 L/min")).toBeTruthy();
     expect(screen.getByRole("heading", { name: "31日" })).toBeTruthy();
     expect(screen.getByText(/酸素 1800L/)).toBeTruthy();
   });
@@ -197,25 +317,88 @@ describe("App", () => {
     render(App);
     await addEntry("010900", "1");
     await addEntry("010900", "3");
-    expect(screen.queryByText(/1日09時00分 1L\/min/)).toBeNull();
-    expect(screen.getAllByText(/1日09時00分 3L\/min/)).toHaveLength(1);
+    expect(screen.getByText("1日09時00分")).toBeTruthy();
+    expect(screen.queryByText("1 L/min")).toBeNull();
+    expect(screen.getByText("3 L/min")).toBeTruthy();
   });
 
-  it("clears entries when a calculation mode changes", async () => {
+  it("keeps existing entries when the mode for subsequent entries changes", async () => {
     render(App);
     await addEntry("010900", "1");
-    await fireEvent.click(screen.getByTitle("設定"));
-    await fireEvent.click(screen.getByLabelText("FiO2モード"));
+    await selectCalculationMethod("総流量・酸素濃度から計算");
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    expect(screen.getByText("1日09時00分")).toBeTruthy();
+    expect(screen.getByText("1 L/min")).toBeTruthy();
+    expect(screen.getByLabelText("設定酸素濃度 (%)")).toBeTruthy();
+  });
+
+  it("shows usage by day and by the mode saved on each entry", async () => {
+    render(App);
+    await addEntry("010800", "2");
+
+    await selectCalculationMethod("総流量・酸素濃度から計算");
+    await fireEvent.input(screen.getByLabelText("日付時刻 (DDHHMM)"), {
+      target: { value: "011400" },
+    });
+    await fireEvent.input(screen.getByLabelText("流量 (L/min)"), {
+      target: { value: "10" },
+    });
+    await fireEvent.input(screen.getByLabelText("設定酸素濃度 (%)"), {
+      target: { value: "40" },
+    });
+    await fireEvent.click(screen.getByTitle("追加"));
+
+    await selectCalculationMethod("酸素流量から計算");
+    await addEntry("021000", "5");
+
     expect(
-      screen.getByRole("alertdialog", { name: "計算条件を変更しますか？" }),
+      screen.getAllByText("酸素流量方式", { selector: ".helper-text" }),
+    ).toHaveLength(2);
+    expect(
+      screen.getAllByText("酸素濃度方式・室内空気", {
+        selector: ".helper-text",
+      }),
+    ).toHaveLength(2);
+    expect(screen.getByText("酸素 720L")).toBeTruthy();
+    expect(screen.getAllByText("酸素 1443L")).toHaveLength(2);
+    expect(screen.getByText("酸素 4200L")).toBeTruthy();
+    expect(screen.queryByText(/合計/)).toBeNull();
+  });
+
+  it("calculates oxygen and nitrogen separately for supplied synthetic air", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+    render(App);
+    await selectCalculationMethod("総流量・酸素濃度から計算");
+    await fireEvent.click(screen.getByLabelText("合成空気（配管）"));
+    expect(
+      screen.getByText(/合成空気中の酸素21%分は酸素ガスへ合算/),
     ).toBeTruthy();
+    await fireEvent.input(screen.getByLabelText("日付時刻 (DDHHMM)"), {
+      target: { value: "010000" },
+    });
+    await fireEvent.input(screen.getByLabelText("流量 (L/min)"), {
+      target: { value: "10" },
+    });
+    await fireEvent.input(screen.getByLabelText("設定酸素濃度 (%)"), {
+      target: { value: "40" },
+    });
+    await fireEvent.click(screen.getByTitle("追加"));
+    expect(
+      screen.getByText("酸素濃度方式・合成空気", {
+        selector: ".helper-text",
+      }),
+    ).toBeTruthy();
+    expect(screen.getByText(/酸素 5760L \/ 窒素 8640L/)).toBeTruthy();
     await fireEvent.click(
-      screen.getByRole("button", { name: "変更してクリア" }),
+      screen.getByLabelText("1日の酸素濃度方式・合成空気のガス使用量をコピー"),
     );
-    expect(screen.getByText("まだ入力がありません")).toBeTruthy();
-    expect(
-      screen.getByText("計算条件を変更し、入力をクリアしました"),
-    ).toBeTruthy();
+    expect(writeText).toHaveBeenCalledWith(
+      "402400+552010/5760*1\n402400+552010/8640*1",
+    );
   });
 
   it("does not let an older notification timer clear a newer message", async () => {

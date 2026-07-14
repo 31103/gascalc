@@ -6,6 +6,7 @@ const makeEntry = (day: number, hour: number, flow: number): Entry => ({
   dateTime: { day, hour, minute: 0 },
   flow,
   fio2: 21,
+  mode: "standard",
 });
 
 describe("upsertEntry", () => {

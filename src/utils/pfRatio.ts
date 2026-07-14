@@ -1,4 +1,5 @@
 import type { Entry } from "../types/entry.ts";
+import { isFio2CalculationMode } from "../types/entry.ts";
 import type { Fio2Candidate, OxygenMeasurement } from "../types/pfRatio.ts";
 import {
   compareBillingDateTime,
@@ -41,11 +42,8 @@ function interpolate(
   return Math.round(fio2 * 10) / 10;
 }
 
-export function getFio2Candidates(
-  entry: Entry,
-  fio2Mode: boolean,
-): Fio2Candidate[] {
-  if (fio2Mode) {
+export function getFio2Candidates(entry: Entry): Fio2Candidate[] {
+  if (isFio2CalculationMode(entry.mode)) {
     return [{ device: "入力されたFiO2", fio2: entry.fio2, estimated: false }];
   }
   if (entry.flow === 0) {
@@ -98,7 +96,6 @@ export function findOxygenEntryAt(
 export function calculatePfRatio(
   measurement: OxygenMeasurement,
   entries: Entry[],
-  fio2Mode: boolean,
 ): PfRatioResult {
   const oxygenEntry = findOxygenEntryAt(entries, measurement);
   const pao2 =
@@ -106,7 +103,7 @@ export function calculatePfRatio(
       ? measurement.value
       : estimatePao2FromSpo2(measurement.value);
   const candidates = oxygenEntry
-    ? getFio2Candidates(oxygenEntry, fio2Mode).map((candidate) => ({
+    ? getFio2Candidates(oxygenEntry).map((candidate) => ({
         ...candidate,
         pfRatio: Math.round(pao2 / (candidate.fio2 / 100)),
       }))

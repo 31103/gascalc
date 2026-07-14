@@ -10,13 +10,9 @@ function renderDialog(returnFocusTo?: HTMLElement) {
   render(SettingsDialog, {
     isOpen: true,
     darkMode: false,
-    fio2Mode: false,
-    noRoomAirMode: false,
     close,
     returnFocusTo,
     onDarkModeChange: vi.fn(),
-    onFio2ModeChange: vi.fn(),
-    onNoRoomAirModeChange: vi.fn(),
   });
   return close;
 }
