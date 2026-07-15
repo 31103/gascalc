@@ -44,6 +44,34 @@ describe("App", () => {
     expect(toggle.getAttribute("aria-expanded")).toBe("false");
   });
 
+  it("accepts zero as an oxygen flow", async () => {
+    render(App);
+    await addEntry("010900", "0");
+
+    expect(screen.getByText("1件の入力")).toBeTruthy();
+    expect(screen.getByText("0 L/min")).toBeTruthy();
+    expect(screen.queryByText("日付時刻と流量を入力してください。")).toBeNull();
+  });
+
+  it("accepts zero as a total flow", async () => {
+    render(App);
+    await selectCalculationMethod("総流量・酸素濃度から計算");
+    await fireEvent.input(screen.getByLabelText("日付時刻 (DDHHMM)"), {
+      target: { value: "010900" },
+    });
+    await fireEvent.input(screen.getByLabelText("流量 (L/min)"), {
+      target: { value: "0" },
+    });
+    await fireEvent.input(screen.getByLabelText("設定酸素濃度 (%)"), {
+      target: { value: "40" },
+    });
+    await fireEvent.click(screen.getByTitle("追加"));
+
+    expect(screen.getByText("1件の入力")).toBeTruthy();
+    expect(screen.getByText("0 L/min")).toBeTruthy();
+    expect(screen.queryByText("日付時刻と流量を入力してください。")).toBeNull();
+  });
+
   it("shows the fallback day and a live date-time interpretation", async () => {
     render(App);
     expect(

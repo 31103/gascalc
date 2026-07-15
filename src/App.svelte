@@ -65,7 +65,7 @@
     // --- Logic ---
 
     function addEntry() {
-        if (!dateTimeStr || !flowStr) {
+        if (!dateTimeStr || flowStr === "") {
             showError("日付時刻と流量を入力してください。");
             return;
         }
