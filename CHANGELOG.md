@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.1](https://github.com/31103/gascalc/compare/v1.3.0...v1.3.1) (2026-07-15)
+
+
+### Bug Fixes
+
+* 流量0の入力を許可 ([daf5ed7](https://github.com/31103/gascalc/commit/daf5ed7ebd9f2c9e6737db89759f68ca10b8beb2))
+* 流量0の入力を許可 ([78bd613](https://github.com/31103/gascalc/commit/78bd6136859c74f43fff902e8d1216826ad5f222))
+
 ## [1.3.0](https://github.com/31103/gascalc/compare/v1.2.0...v1.3.0) (2026-07-14)
 
 
